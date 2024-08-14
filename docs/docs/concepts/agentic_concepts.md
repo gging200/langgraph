@@ -1,118 +1,99 @@
-# Common Agentic Patterns
+# 일반적인 에이전틱 패턴
 
-## Structured Output
+## 구조화된 출력
 
-It's pretty common to want LLMs inside nodes to return structured output when building agents. This is because that structured output can often be used to route to the next step (e.g. choose between two different edges) or update specific keys of the state.
+에이전트를 구축할 때 노드 내부에서 LLM이 구조화된 출력을 반환하도록 하는 것은 매우 일반적입니다. 이는 구조화된 출력이 종종 다음 단계로 라우팅하거나(예: 두 가지 다른 경로 중 하나를 선택) 상태의 특정 키를 업데이트하는 데 사용될 수 있기 때문입니다.
 
-Since LangGraph nodes can be arbitrary Python functions, you can do this however you want. If you want to use LangChain, [this how-to guide](https://python.langchain.com/v0.2/docs/how_to/structured_output/) is a starting point.
+LangGraph 노드는 임의의 Python 함수를 사용할 수 있으므로, 원하는 방식으로 구현할 수 있습니다. LangChain을 사용하고 싶다면, [이 가이드](https://python.langchain.com/v0.2/docs/how_to/structured_output/)가 시작점이 될 수 있습니다.
 
-## Tool calling
+## 도구 호출
 
-It's extremely common to want agents to do tool calling. Tool calling refers to choosing from several available tools, and specifying which ones to call and what the inputs should be. This is extremely common in agents, as you often want to let the LLM decide which tools to call and then call those tools.
+에이전트가 도구 호출을 수행하도록 하는 것은 매우 일반적입니다. 도구 호출은 여러 가용 도구 중에서 선택하고, 어떤 도구를 호출할지 및 그 입력이 무엇인지 지정하는 것을 의미합니다. 이는 에이전트에서 매우 흔히 사용되며, LLM이 어떤 도구를 호출할지 결정하도록 하고, 그런 다음 해당 도구를 호출하는 경우가 많습니다.
 
-Since LangGraph nodes can be arbitrary Python functions, you can do this however you want. If you want to use LangChain, [this how-to guide](https://python.langchain.com/v0.2/docs/how_to/tool_calling/) is a starting point.
+LangGraph 노드는 임의의 Python 함수를 사용할 수 있으므로, 원하는 방식으로 구현할 수 있습니다. LangChain을 사용하고 싶다면, [이 가이드](https://python.langchain.com/v0.2/docs/how_to/tool_calling/)가 시작점이 될 수 있습니다.
 
-## Memory
+## 메모리
 
-Memory is a key concept to agentic applications. Memory is important because end users often expect the application they are interacting with remember previous interactions. The most simple example of this is chatbots - they clearly need to remember previous messages in a conversation.
+메모리는 에이전틱 애플리케이션의 핵심 개념입니다. 메모리는 최종 사용자가 상호작용하는 애플리케이션이 이전 상호작용을 기억하기를 기대하는 경우가 많기 때문에 중요합니다. 가장 간단한 예는 챗봇입니다. 챗봇은 분명히 대화 중에 이전 메시지를 기억해야 합니다.
 
-LangGraph is perfectly suited to give you full control over the memory of your application. With user defined [`State`](./low_level.md#state) you can specify the exact schema of the memory you want to retain. With [checkpointers](./low_level.md#checkpointer) you can store checkpoints of previous interactions and resume from there in follow up interactions.
+LangGraph는 애플리케이션의 메모리를 완전히 제어할 수 있도록 설계되었습니다. 사용자가 정의한 [`State`](./low_level.md#state)를 통해 유지하고자 하는 메모리의 정확한 스키마를 지정할 수 있습니다. [체크포인터](./low_level.md#checkpointer)를 사용하여 이전 상호작용의 체크포인트를 저장하고, 후속 상호작용에서 그 지점부터 다시 시작할 수 있습니다.
 
-See [this guide](../how-tos/persistence.ipynb) for how to add memory to your graph.
+그래프에 메모리를 추가하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/persistence.ipynb)를 참조하세요.
 
-## Human-in-the-loop
+## 사람이 개입하는 루프
 
-Agentic systems often require some human-in-the-loop (or "on-the-loop") interaction patterns. This is because agentic systems are still not super reliable, so having a human involved is required for any sensitive tasks/actions. These are all easily enabled in LangGraph, largely due to [checkpointers](./low_level.md#checkpointer). The reason a checkpointer is necessary is that a lot of these interaction patterns involve running a graph up until a certain point, waiting for some sort of human feedback, and then continuing. When you want to "continue" you will need to access the state of the graph previous to getting interrupted, and checkpointers are a built in, highly convenient way to do that.
+에이전틱 시스템은 종종 사람이 개입하는(또는 "루프 내의") 상호작용 패턴이 필요합니다. 이는 에이전틱 시스템이 아직 매우 신뢰할 수 없기 때문에, 민감한 작업/행동에는 사람의 개입이 필요하기 때문입니다. 이러한 상호작용 패턴은 [체크포인터](./low_level.md#checkpointer) 덕분에 LangGraph에서 쉽게 구현할 수 있습니다. 체크포인터가 필요한 이유는 이러한 상호작용 패턴의 많은 부분이 그래프를 특정 지점까지 실행하고, 어떤 종류의 사람 피드백을 기다린 다음, 계속 진행하는 것과 관련이 있기 때문입니다. "계속"할 때, 그래프가 중단되기 전의 상태에 접근해야 하며, 체크포인터는 이를 위한 내장된 매우 편리한 방법입니다.
 
-There are a few common human-in-the-loop interaction patterns we see emerging.
+다음은 우리가 자주 보는 몇 가지 일반적인 사람 개입 상호작용 패턴입니다.
 
-### Approval
+### 승인
 
-A basic one is to have the agent wait for approval before executing certain tools. This may be all tools, or just a subset of tools. This is generally recommend for more sensitive actions (like writing to a database). This can easily be done in LangGraph by setting a [breakpoint](./low_level.md#breakpoints) before specific nodes.
+기본적인 패턴 중 하나는 특정 도구를 실행하기 전에 에이전트가 승인을 기다리도록 하는 것입니다. 이는 모든 도구에 적용할 수도 있고, 특정 도구의 하위 집합에만 적용할 수도 있습니다. 이는 일반적으로 데이터베이스에 쓰기와 같은 민감한 작업에 권장됩니다. LangGraph에서는 특정 노드 앞에 [중단점](./low_level.md#breakpoints)을 설정하여 쉽게 구현할 수 있습니다.
 
-See [this guide](../how-tos/human_in_the_loop/breakpoints.ipynb) for how do this in LangGraph.
+LangGraph에서 이를 구현하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/human_in_the_loop/breakpoints.ipynb)를 참조하세요.
 
-### Wait for input
+### 입력 대기
 
-A similar one is to have the agent wait for human input. This can be done by:
+유사한 패턴으로, 에이전트가 사람의 입력을 기다리도록 하는 방법도 있습니다. 이는 다음과 같이 할 수 있습니다:
 
-1. Create a node specifically for human input
-2. Add a breakpoint before the node
-3. Get user input
-4. Update the state with that user input, acting as that node
-5. Resume execution
+1. 사람의 입력을 받기 위한 노드를 생성합니다.
+2. 노드 앞에 중단점을 추가합니다.
+3. 사용자 입력을 받습니다.
+4. 해당 사용자 입력을 그 노드의 상태로 업데이트합니다.
+5. 실행을 재개합니다.
 
-See [this guide](../how-tos/human_in_the_loop/wait-user-input.ipynb) for how do this in LangGraph.
+LangGraph에서 이를 구현하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/human_in_the_loop/wait-user-input.ipynb)를 참조하세요.
 
-### Edit agent actions
+### 에이전트 행동 수정
 
-This is a more advanced interaction pattern. In this interaction pattern the human can actually edit some of the agent's previous decisions. This can be done either during the flow (after a [breakpoint](./low_level.md#breakpoints), part of the [approval](#approval) flow) or after the fact (as part of [time-travel](#time-travel))
+이것은 더 고급 상호작용 패턴입니다. 이 패턴에서는 사용자가 실제로 에이전트의 이전 결정을 수정할 수 있습니다. 이는 흐름 중에(예: [중단점](./low_level.md#breakpoints) 이후, [승인](#approval) 흐름의 일부) 또는 나중에(예: [시간 여행](#time-travel)의 일부로) 수행할 수 있습니다.
 
-See [this guide](../how-tos/human_in_the_loop/edit-graph-state.ipynb) for how do this in LangGraph.
+LangGraph에서 이를 구현하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/human_in_the_loop/edit-graph-state.ipynb)를 참조하세요.
 
-### Time travel
+### 시간 여행
 
-This is a pretty advanced interaction pattern. In this interaction pattern, the human can look back at the list of previous checkpoints, find one they like, optionally [edit it](#edit-agent-actions), and then resume execution from there.
+이것은 매우 고급 상호작용 패턴입니다. 이 패턴에서는 사용자가 이전 체크포인트 목록을 되돌아보고, 원하는 체크포인트를 찾아 선택하고, 선택적으로 [수정](#edit-agent-actions)한 다음, 그 지점부터 실행을 재개할 수 있습니다.
 
-See [this guide](../how-tos/human_in_the_loop/time-travel.ipynb) for how to do this in LangGraph.
+LangGraph에서 이를 구현하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/human_in_the_loop/time-travel.ipynb)를 참조하세요.
 
-## Review Tool Calls
+## 맵-리듀스(Map-Reduce)
 
-This is a specific type of human-in-the-loop interaction but it's worth calling out because it is so common. A lot of agent decisions are made via tool calling, so having a clear UX for reviewing tool calls is handy.
+에이전트에서 흔히 사용하는 패턴은 객체 목록을 생성하고, 각 객체에 대해 작업을 수행한 다음, 결과를 결합하는 것입니다. 이는 일반적인 [맵-리듀스](https://en.wikipedia.org/wiki/MapReduce) 작업과 매우 유사합니다. 이 작업은 몇 가지 이유로 까다로울 수 있습니다. 첫째, 객체 목록의 길이가 미리 알려지지 않았기 때문에 구조화된 그래프를 사전에 정의하기 어려울 수 있습니다. 둘째, 이 맵-리듀스를 수행하려면 여러 버전의 상태가 존재해야 하지만, 그래프는 공통의 공유 상태를 사용하므로 이를 어떻게 처리할지 고민할 수 있습니다.
 
-A tool call consists of:
-- The name of the tool to call
-- Arguments to pass to the tool
+LangGraph는 [Send](./low_level.md#send) API를 통해 이를 지원합니다. 이를 사용하여 조건부 엣지를 통해 여러 다른 상태를 여러 노드로 보낼 수 있습니다. 보낸 상태는 코어 그래프의 상태와 다를 수 있습니다.
 
-Note that these tool calls can obviously be used for actually calling functions, but they can also be used for other purposes, like to route the agent in a specific direction.
-You will want to review the tool call for both of these use cases.
+LangGraph에서 이를 구현하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/map-reduce.ipynb)를 참조하세요.
 
-When reviewing tool calls, there are few actions you may want to take.
+## 멀티 에이전트
 
-1. Approve the tool call (and let the agent continue on its way)
-2. Manually change the tool call, either the tool name or the tool arguments (and let the agent continue on its way after that)
-3. Leave feedback on the tool call. This differs from (2) in that you are not changing the tool call directly, but rather leaving natural language feedback suggesting the LLM call it differently (or call a different tool). You could do this by either adding a `ToolMessage` and having the feedback be the result of the tool call, or by adding a `ToolMessage` (that simulates an error) and then a `HumanMessage` (with the feedback).
+"멀티 에이전트" 아키텍처라는 용어를 들어본 적이 있을 것입니다. 이것은 정확히 무엇을 의미할까요?
 
-See [this guide](../how-tos/human_in_the_loop/review-tool-calls.ipynb) for how to do this in LangGraph.
+"에이전트"를 정의하는 것조차 어려운데, "멀티 에이전트" 아키텍처를 정확히 정의하는 것은 거의 불가능합니다. 대부분의 사람들이 멀티 에이전트 아키텍처에 대해 이야기할 때, 그들은 일반적으로 여러 다른 LLM 기반 시스템이 있는 시스템을 의미합니다. 이러한 LLM 기반 시스템은 프롬프트와 LLM 호출과 같이 간단할 수도 있고, [ReAct 에이전트](#react-agent)처럼 복잡할 수도 있습니다.
 
-## Map-Reduce
+멀티 에이전트 시스템에서 가장 큰 질문은 그들이 어떻게 통신하는가입니다. 여기에는 그들이 통신하는 스키마뿐만 아니라 통신하는 순서도 포함됩니다. LangGraph는 이러한 유형의 시스템을 조정하기에 완벽합니다. 여러 에이전트를 정의할 수 있으며(각 에이전트는 노드입니다), 통신 스키마를 포괄하는 임의의 상태와 통신 순서를 제어하는 엣지를 정의할 수 있습니다.
 
-A common pattern in agents is to generate a list of objects, do some work on each of those objects, and then combine the results. This is very similar to the common [map-reduce](https://en.wikipedia.org/wiki/MapReduce) operation. This can be tricky for a few reasons. First, it can be tough to define a structured graph ahead of time because the length of the list of objects may be unknown. Second, in order to do this map-reduce you need multiple versions of the state to exist... but the graph shares a common shared state, so how can this be?
+## 계획 수립
 
-LangGraph supports this via the [Send](./low_level.md#send) api. This can be used to allow a conditional edge to Send multiple different states to multiple nodes. The state it sends can be different from the state of the core graph.
+에이전틱 시스템이 겪는 큰 문제 중 하나는 장기적인 계획 수립입니다. 이를 극복하기 위한 일반적인 기술은 명시적인 계획 수립을 하는 것입니다. 이는 일반적으로 LLM을 호출하여 실행할 일련의 단계를 도출하는 것을 포함합니다. 그 후, 시스템은 일련의 작업을 실행하려고 시도합니다(이를 수행하기 위해 하위 에이전트를 사용할 수 있습니다). 선택적으로, 각 단계 후에 계획을 재검토하고 필요하면 업데이트할 수 있습니다.
 
-See a how-to guide for this [here](../how-tos/map-reduce.ipynb)
+## 반성
 
-## Multi-agent
+에이전트는 종종 신뢰할 수 있는 결과를 생성하는 데 어려움을 겪습니다. 따라서 에이전트가 작업을 올바르게 완료했는지 확인하는 것이 도움이 될 수 있습니다. 올바르게 완료했다면, 작업을 마칠 수 있습니다. 그렇지 않다면, 작업이 올바르지 않은 이유에 대한 피드백을 받아 에이전트의 다른 반복 작업으로 다시 전달할 수 있습니다.
 
-A term you may have heard is "multi-agent" architectures. What exactly does this mean?
+이 "반성" 단계는 종종 LLM을 사용하지만 반드시 그런 것은 아닙니다. LLM을 사용할 필요가 없는 좋은 예는 코딩에서 발생할 수 있는데, 생성된 코드를 컴파일해보고 발생하는 오류를 피드백으로 사용할 수 있습니다.
 
-Given that it is hard to even define an "agent", it's almost impossible to exactly define a "multi-agent" architecture. When most people talk about a multi-agent architecture, they typically mean a system where there are multiple different LLM-based systems. These LLM-based systems can be as simple as a prompt and an LLM call, or as complex as a [ReAct agent](#react-agent).
+## ReAct 에이전트
 
-The big question in multi-agent systems is how they communicate. This involves both the schema of how they communicate, as well as the sequence in which they communicate. LangGraph is perfect for orchestrating these types of systems. It allows you to define multiple agents (each one is a node) an arbitrary state (to encapsulate the schema of how they communicate) as well as the edges (to control the sequence in which they communicate).
+가장 흔한 에이전트 아키텍처 중 하나는 흔히 ReAct 에이전트 아키텍처라고 불리는 것입니다. 이 아키텍처에서는 LLM이 반복 루프에서 반복적으로 호출됩니다. 각 단계에서 에이전트는 호출할 도구와 그 도구에 입력할 값을 결정합니다. 그런 다음 그 도구들이 실행되고, 그 출력이 관찰 결과로서 LLM에 다시 입력됩니다. 에이전트가 더 이상 도구를 호출할 가치가 없다고 판단하면 반복 루프가 종료됩니다.
 
-## Planning
+LangGraph에서 사용할 수 있는 몇 안 되는 고급, 미리 구축된 에이전트 중 하나이며, [`create_react_agent`](../reference/prebuilt.md#create_react_agent)와 함께 사용할 수 있습니다.
 
-One of the big things that agentic systems struggle with is long term planning. A common technique to overcome this is to have an explicit planning this. This generally involves calling an LLM to come up with a series of steps to execute. From there, the system then tries to execute the series of tasks (this could use a sub-agent to do so). Optionally, you can revisit the plan after each step and update it if needed.
+이 아키텍처는 [ReAct](https://arxiv.org/abs/2210.03629) 논문에서 영감을 받아 이름이 지어졌으며, 그에 기반하고 있습니다. 그러나 이 논문과 우리의 구현 사이에는 몇 가지 차이점이 있습니다:
 
-## Reflection
+- 첫째, 우리는 LLM이 도구를 호출하도록 [도구 호출](#tool-calling)을 사용합니다. 논문에서는 프롬프트와 원시 출력의 파싱을 사용했습니다. 이는 논문이 작성될 당시 도구 호출이 존재하지 않았기 때문이며, 도구 호출이 일반적으로 더 좋고 신뢰할 수 있기 때문입니다.
+- 둘째, 우리는 LLM을 프롬프트하는 데 메시지를 사용합니다. 논문에서는 문자열 포맷팅을 사용했습니다. 이는 LLM이 메시지 기반 인터페이스를 노출하지 않았기 때문이며, 지금은 메시지 기반 인터페이스만 노출하기 때문입니다.
+- 셋째, 논문에서는 도구의 모든 입력이 단일 문자열이어야 했습니다. 이는 주로 당시 LLM의 성능이 뛰어나지 않았고, 단일 입력만 생성할 수 있었기 때문입니다. 우리의 구현은 여러 입력이 필요한 도구를 사용하는 것을 허용합니다.
+- 넷째, 논문에서는 LLM 성능의 제한으로 인해 한 번에 하나의 도구만 호출할 수 있었습니다. 우리의 구현은 한 번에 여러 도구를 호출할 수 있습니다.
+- 마지막으로, 논문에서는 도구를 호출할 도구를 결정하기 전에 LLM이 명시적으로 "생각" 단계를 생성하도록 요청했습니다. 이것이 "ReAct"의 "추론" 부분입니다. 우리의 구현은 기본적으로 이를 수행하지 않으며, 이는 LLM이 더 나아졌기 때문에 필요하지 않기 때문입니다. 물론, 원하신다면 그렇게 하도록 프롬프트할 수 있습니다.
 
-Agents often struggle to produce reliable results. Therefore, it can be helpful to check whether the agent has completed a task correctly or not. If it has - then you can finish. If it hasn't - then you can take the feedback on why it's not correct and pass it back into another iteration of the agent.
-
-This "reflection" step often uses an LLM, but doesn't have to. A good example of where using an LLM may not be necessary is in coding, when you can try to compile the generated code and use any errors as the feedback.
-
-## ReAct Agent
-
-One of the most common agent architectures is what is commonly called the ReAct agent architecture. In this architecture, an LLM is called repeatedly in a while-loop. At each step the agent decides which tools to call, and what the inputs to those tools should be. Those tools are then executed, and the outputs are fed back into the LLM as observations. The while-loop terminates when the agent decides it is not worth calling any more tools.
-
-One of the few high level, pre-built agents we have in LangGraph - you can use it with [`create_react_agent`](../reference/prebuilt.md#create_react_agent)
-
-This is named after and based on the [ReAct](https://arxiv.org/abs/2210.03629) paper. However, there are several differences between this paper and our implementation:
-
-- First, we use [tool-calling](#tool-calling) to have LLMs call tools, whereas the paper used prompting + parsing of raw output. This is because tool calling did not exist when the paper was written, but is generally better and more reliable.
-- Second, we use messages to prompt the LLM, whereas the paper used string formatting. This is because at the time of writing, LLMs didn't even expose a message-based interface, whereas now that's the only interface they expose.
-- Third, the paper required all inputs to the tools to be a single string. This was largely due to LLMs not being super capable at the time, and only really being able to generate a single input. Our implementation allows for using tools that require multiple inputs.
-- Forth, the paper only looks at calling a single tool at the time, largely due to limitations in LLMs performance at the time. Our implementation allows for calling multiple tools at a time.
-- Finally, the paper asked the LLM to explicitly generate a "Thought" step before deciding which tools to call. This is the "Reasoning" part of "ReAct". Our implementation does not do this by default, largely because LLMs have gotten much better and that is not as necessary. Of course, if you wish to prompt it do so, you certainly can.
-
-See [this guide](../how-tos/human_in_the_loop/time-travel.ipynb) for a full walkthrough of how to use the prebuilt ReAct agent.
+미리 구축된 ReAct 에이전트를 사용하는 방법에 대한 전체 연습을 보려면 [이 가이드](../how-tos/human_in_the_loop/time-travel.ipynb)를 참조하세요.

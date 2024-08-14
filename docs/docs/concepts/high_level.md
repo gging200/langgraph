@@ -1,55 +1,55 @@
-# LangGraph for Agentic Applications
+# 에이전틱(Agentic) 애플리케이션을 위한 LangGraph
 
-## What does it mean to be agentic?
+## 에이전틱하다는 것은 무엇을 의미하나요?
 
-Other people may talk about a system being an "agent" - we prefer to talk about systems being "agentic". But what does this actually mean?
+다른 사람들은 시스템이 "에이전트"라고 이야기할 수 있지만, 우리는 시스템이 "에이전틱하다"라고 이야기하는 것을 선호합니다. 그런데 이것이 실제로 무엇을 의미할까요?
 
-When we talk about systems being "agentic", we are talking about systems that use an LLM to decide the control flow of an application. There are different levels that an LLM can be used to decide the control flow, and this spectrum of "agentic" makes more sense to us than defining an arbitrary cutoff for what is or isn't an agent.
+우리가 시스템이 "에이전틱하다"라고 이야기할 때, 우리는 시스템이 애플리케이션의 제어 흐름을 결정하기 위해 LLM(대형 언어 모델)을 사용하는 것을 의미합니다. LLM이 제어 흐름을 결정하는 데 사용될 수 있는 여러 단계가 있으며, 우리는 에이전트가 무엇인지에 대한 임의의 기준을 정하는 것보다 이 "에이전틱"의 스펙트럼이 더 합리적이라고 생각합니다.
 
-Examples of using an LLM to decide the control of an application:
+애플리케이션의 제어를 결정하기 위해 LLM을 사용하는 예시:
 
-- Using an LLM to route between two potential paths
-- Using an LLM to decide which of many tools to call
-- Using an LLM to decide whether the generated answer is sufficient or more work is need
+- 두 개의 잠재적인 경로 중 하나를 선택하기 위해 LLM을 사용하는 경우
+- 여러 도구 중 하나를 호출할지 결정하기 위해 LLM을 사용하는 경우
+- 생성된 답변이 충분한지 또는 추가 작업이 필요한지 결정하기 위해 LLM을 사용하는 경우
 
-The more times these types of decisions are made inside an application, the more agentic it is.
-If these decisions are being made in a loop, then its even more agentic!
+이러한 유형의 결정이 애플리케이션 내에서 더 많이 이루어질수록, 그 애플리케이션은 더 에이전틱해집니다.
+만약 이러한 결정이 반복적으로 이루어진다면, 그 애플리케이션은 더욱 에이전틱해집니다!
 
-There are other concepts often associated with being agentic, but we would argue these are a by-product of the above definition:
+에이전틱함과 관련된 다른 개념들도 자주 언급되지만, 우리는 이러한 개념들이 위 정의의 부산물이라고 주장합니다:
 
-- [Tool calling](agentic_concepts.md#tool-calling): this is often how LLMs make decisions
-- Action taking: often times, the LLMs' outputs are used as the input to an action
-- [Memory](agentic_concepts.md#memory): reliable systems need to have knowledge of things that occurred
-- [Planning](agentic_concepts.md#planning): planning steps (either explicit or implicit) are useful for ensuring that the LLM, when making decisions, makes them in the highest fidelity way.
+- [도구 호출](agentic_concepts.md#tool-calling): LLM이 결정을 내리는 방식이 종종 여기에 해당합니다.
+- 행동 취하기: 종종 LLM의 출력이 행동의 입력으로 사용됩니다.
+- [메모리](agentic_concepts.md#memory): 신뢰할 수 있는 시스템은 발생한 일을 기억해야 합니다.
+- [계획 수립](agentic_concepts.md#planning): 계획 단계(명시적이든 암묵적이든)는 LLM이 결정을 내릴 때 최고 수준의 정확도로 결정을 내리도록 하는 데 유용합니다.
 
-## Why LangGraph?
+## 왜 LangGraph인가?
 
-LangGraph has several core principles that we believe make it the most suitable framework for building agentic applications:
+LangGraph는 에이전틱 애플리케이션을 구축하기에 가장 적합한 프레임워크라고 믿는 몇 가지 핵심 원칙을 가지고 있습니다:
 
-- [Controllability](../how-tos/index.md#controllability)
-- [Human-in-the-Loop](../how-tos/index.md#human-in-the-loop)
-- [Streaming First](../how-tos/index.md#streaming)
+- [제어 가능성](../how-tos/index.md#controllability)
+- [사람이 개입하는 루프](../how-tos/index.md#human-in-the-loop)
+- [스트리밍 우선](../how-tos/index.md#streaming)
 
-**Controllability**
+**제어 가능성**
 
-LangGraph is extremely low level. This gives you a high degree of control over what the system you are building actually does. We believe this is important because it is still hard to get agentic systems to work reliably, and we've seen that the more control you exercise over them, the more likely it is that they will "work".
+LangGraph는 매우 저수준입니다. 이는 여러분이 구축하는 시스템이 실제로 무엇을 하는지에 대해 높은 수준의 제어를 할 수 있게 합니다. 에이전틱 시스템을 안정적으로 작동시키는 것은 여전히 어려운 일이기 때문에, 우리는 시스템에 대한 제어를 더 많이 할수록 그들이 "작동"할 가능성이 높아진다고 믿습니다.
 
-**Human-in-the-Loop**
+**사람이 개입하는 루프**
 
-LangGraph comes with a built-in persistence layer as a first-class concept. This enables several different human-in-the-loop interaction patterns. We believe that "Human-Agent Interaction" patterns will be the new "Human-Computer Interaction", and have built LangGraph with built in persistence to enable this.
+LangGraph는 내장된 영속성 계층을 첫 번째 개념으로 제공하며, 이는 여러 가지 사람-에이전트 상호작용 패턴을 가능하게 합니다. 우리는 "사람-에이전트 상호작용" 패턴이 새로운 "사람-컴퓨터 상호작용" 패턴이 될 것이며, 이를 가능하게 하기 위해 LangGraph를 내장된 영속성 기능과 함께 설계했습니다.
 
-**Streaming First**
+**스트리밍 우선**
 
-LangGraph comes with first class support for streaming. Agentic applications often take a while to run, and so giving the user some idea of what is happening is important, and streaming is a great way to do that. LangGraph supports streaming of both events ([like a tool call being taken](../how-tos/stream-updates.ipynb)) as well as of [tokens that an LLM may emit](../how-tos/streaming-tokens.ipynb).
+LangGraph는 스트리밍에 대한 일급 지원을 제공합니다. 에이전틱 애플리케이션은 종종 실행하는 데 시간이 걸리기 때문에, 사용자가 어떤 일이 일어나고 있는지에 대한 정보를 제공하는 것이 중요하며, 스트리밍은 이를 위한 훌륭한 방법입니다. LangGraph는 이벤트([예: 도구 호출이 이루어지는 경우](../how-tos/stream-updates.ipynb))와 [LLM이 방출할 수 있는 토큰](../how-tos/streaming-tokens.ipynb)의 스트리밍을 모두 지원합니다.
 
-## Deployment
+## 배포
 
-So you've built your LangGraph object - now what?
+LangGraph 객체를 구축하셨다면 이제 어떻게 해야 할까요?
 
-Now you need to deploy it. 
-There are many ways to deploy LangGraph objects, and the right solution depends on your needs and use case.
-We'll highlight two ways here: using [LangGraph Cloud](../cloud/index.md) or rolling your own solution.
+이제 그것을 배포해야 합니다.
+LangGraph 객체를 배포하는 방법에는 여러 가지가 있으며, 적절한 솔루션은 여러분의 필요와 사용 사례에 따라 달라집니다.
+여기에서는 두 가지 방법을 강조하겠습니다: [LangGraph Cloud](../cloud/index.md)를 사용하는 방법과 직접 솔루션을 구축하는 방법입니다.
 
-[LangGraph Cloud](../cloud/index.md) is an opinionated way to deploy LangGraph objects from the LangChain team. Please see the [LangGraph Cloud documentation](../cloud/index.md) for all the details about what it involves, to see if it is a good fit for you.
+[LangGraph Cloud](../cloud/index.md)는 LangChain 팀에서 제공하는 LangGraph 객체를 배포하는 고유한 방법입니다. [LangGraph Cloud 문서](../cloud/index.md)에서 이 방법이 여러분에게 적합한지 여부에 대한 모든 세부 사항을 확인할 수 있습니다.
 
-If it is not a good fit, you may want to roll your own deployment. In this case, we would recommend using [FastAPI](https://fastapi.tiangolo.com/) to stand up a server. You can then call this graph from inside the FastAPI server as you see fit.
+만약 적합하지 않다면, 직접 배포 솔루션을 구축하는 것이 좋습니다. 이 경우, 서버를 설정하기 위해 [FastAPI](https://fastapi.tiangolo.com/)를 사용하는 것을 권장합니다. 그런 다음 FastAPI 서버 내에서 이 그래프를 적절히 호출할 수 있습니다.

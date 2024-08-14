@@ -1,57 +1,56 @@
-# Conceptual Guides
+# 개념 가이드
 
-In this guide we will explore the concepts behind build agentic and multi-agent systems with LangGraph. We assume you have already learned the basic covered in the [introduction tutorial](../tutorials/introduction.ipynb) and want to deepen your understanding of LangGraph's underlying design and inner workings.
+이 가이드에서는 LangGraph를 사용하여 에이전트 기반 및 다중 에이전트 시스템을 구축하는 데 필요한 개념을 탐구합니다. 이 가이드는 [소개 튜토리얼](../tutorials/introduction.ipynb)에서 다룬 기본 내용을 이미 숙지했으며, LangGraph의 기본 설계와 내부 작동 방식에 대한 이해를 심화하고자 하는 사용자를 대상으로 합니다.
 
-There are three main parts to this concept guide. First, we'll discuss at a very high level what it means to be agentic. Next, we'll look at lower-level concepts in LangGraph that are core for understanding how to build your own agentic systems. Finally, we'll discuss common agentic patterns and how you can achieve those with LangGraph. These will be mostly conceptual guides - for more technical, hands-on guides see our [how-to guides](../how-tos/index.md)
+이 개념 가이드는 세 부분으로 나뉩니다. 먼저, 에이전트 기반이 무엇을 의미하는지 높은 수준에서 논의합니다. 다음으로, 자신만의 에이전트 시스템을 구축하는 방법을 이해하는 데 핵심이 되는 LangGraph의 저수준 개념을 살펴봅니다. 마지막으로, 일반적인 에이전트 패턴과 LangGraph로 이를 어떻게 구현할 수 있는지 논의할 것입니다. 이 가이드는 주로 개념적인 내용에 집중하며, 더 기술적이고 실질적인 가이드가 필요하다면 [사용 방법 가이드](../how-tos/index.md)를 참고하십시오.
 
+## 에이전트 기반 애플리케이션을 위한 LangGraph
 
-LangGraph for Agentic Applications
+- [에이전트 기반이란 무엇을 의미하는가?](high_level.md#what-does-it-mean-to-be-agentic)
+- [왜 LangGraph인가](high_level.md#why-langgraph)
+- [배포](high_level.md#deployment)
 
-- [What does it mean to be agentic?](high_level.md#what-does-it-mean-to-be-agentic)
-- [Why LangGraph](high_level.md#why-langgraph)
-- [Deployment](high_level.md#deployment)
+## 저수준 개념
 
-Low Level Concepts
-
-- [Graphs](low_level.md#graphs)
+- [그래프](low_level.md#graphs)
     - [StateGraph](low_level.md#stategraph)
     - [MessageGraph](low_level.md#messagegraph)
-    - [Compiling Your Graph](low_level.md#compiling-your-graph)
-- [State](low_level.md#state)
-    - [Schema](low_level.md#schema)
-    - [Reducers](low_level.md#reducers)
+    - [그래프 컴파일하기](low_level.md#compiling-your-graph)
+- [상태](low_level.md#state)
+    - [스키마](low_level.md#schema)
+    - [리듀서](low_level.md#reducers)
     - [MessageState](low_level.md#working-with-messages-in-graph-state)
-- [Nodes](low_level.md#nodes)
-    - [`START` node](low_level.md#start-node)
-    - [`END` node](low_level.md#end-node)
-- [Edges](low_level.md#edges)
-    - [Normal Edges](low_level.md#normal-edges)
-    - [Conditional Edges](low_level.md#conditional-edges)
-    - [Entry Point](low_level.md#entry-point)
-    - [Conditional Entry Point](low_level.md#conditional-entry-point)
-- [Send](low_level.md#send)
-- [Checkpointer](low_level.md#checkpointer)
-- [Threads](low_level.md#threads)
-- [Checkpointer states](low_level.md#checkpointer-state)
-    - [Get state](low_level.md#get-state)
-    - [Get state history](low_level.md#get-state-history)
-    - [Update state](low_level.md#update-state)
-- [Configuration](low_level.md#configuration)
-- [Visualization](low_level.md#visualization)
-- [Streaming](low_level.md#streaming)
+- [노드](low_level.md#nodes)
+    - [`START` 노드](low_level.md#start-node)
+    - [`END` 노드](low_level.md#end-node)
+- [엣지](low_level.md#edges)
+    - [일반 엣지](low_level.md#normal-edges)
+    - [조건부 엣지](low_level.md#conditional-edges)
+    - [진입점](low_level.md#entry-point)
+    - [조건부 진입점](low_level.md#conditional-entry-point)
+- [전송](low_level.md#send)
+- [체크포인터](low_level.md#checkpointer)
+- [스레드](low_level.md#threads)
+- [체크포인터 상태](low_level.md#checkpointer-state)
+    - [상태 가져오기](low_level.md#get-state)
+    - [상태 기록 가져오기](low_level.md#get-state-history)
+    - [상태 업데이트](low_level.md#update-state)
+- [구성](low_level.md#configuration)
+- [시각화](low_level.md#visualization)
+- [스트리밍](low_level.md#streaming)
 
-Common Agentic Patterns
+## 일반적인 에이전트 패턴
 
-- [Structured output](agentic_concepts.md#structured-output)
-- [Tool calling](agentic_concepts.md#tool-calling)
-- [Memory](agentic_concepts.md#memory)
-- [Human in the loop](agentic_concepts.md#human-in-the-loop)
-    - [Approval](agentic_concepts.md#approval)
-    - [Wait for input](agentic_concepts.md#wait-for-input)
-    - [Edit agent actions](agentic_concepts.md#edit-agent-actions)
-    - [Time travel](agentic_concepts.md#time-travel)
-- [Map-Reduce](agentic_concepts.md#map-reduce)
-- [Multi-agent](agentic_concepts.md#multi-agent)
-- [Planning](agentic_concepts.md#planning)
-- [Reflection](agentic_concepts.md#reflection)
-- [Off-the-shelf ReAct Agent](agentic_concepts.md#react-agent)
+- [구조화된 출력](agentic_concepts.md#structured-output)
+- [도구 호출](agentic_concepts.md#tool-calling)
+- [메모리](agentic_concepts.md#memory)
+- [인간이 개입하는 루프](agentic_concepts.md#human-in-the-loop)
+    - [승인](agentic_concepts.md#approval)
+    - [입력 대기](agentic_concepts.md#wait-for-input)
+    - [에이전트 작업 편집](agentic_concepts.md#edit-agent-actions)
+    - [시간 여행](agentic_concepts.md#time-travel)
+- [맵-리듀스](agentic_concepts.md#map-reduce)
+- [다중 에이전트](agentic_concepts.md#multi-agent)
+- [계획 수립](agentic_concepts.md#planning)
+- [반성](agentic_concepts.md#reflection)
+- [상용 ReAct 에이전트](agentic_concepts.md#react-agent)

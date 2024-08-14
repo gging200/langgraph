@@ -1,64 +1,56 @@
-# Low Level Conceptual Guide
+# 저수준 개념 가이드
 
-## Graphs
+## 그래프
 
-At its core, LangGraph models agent workflows as graphs. You define the behavior of your agents using three key components:
+LangGraph의 핵심은 에이전트 워크플로를 그래프로 모델링하는 것입니다. 에이전트의 동작을 정의하기 위해 세 가지 주요 구성 요소를 사용합니다:
 
-1. [`State`](#state): A shared data structure that represents the current snapshot of your application. It can be any Python type, but is typically a `TypedDict` or Pydantic `BaseModel`.
+1. [`State`](#state): 애플리케이션의 현재 스냅샷을 나타내는 공유 데이터 구조입니다. 이는 Python의 어떤 타입이든 될 수 있지만, 일반적으로 `TypedDict` 또는 Pydantic의 `BaseModel`을 사용합니다.
 
-2. [`Nodes`](#nodes): Python functions that encode the logic of your agents. They receive the current `State` as input, perform some computation or side-effect, and return an updated `State`.
+2. [`Nodes`](#nodes): 에이전트의 로직을 인코딩하는 Python 함수입니다. 이 함수들은 현재 `State`를 입력으로 받아서 일부 계산이나 부수 효과를 수행하고, 업데이트된 `State`를 반환합니다.
 
-3. [`Edges`](#edges): Python functions that determine which `Node` to execute next based on the current `State`. They can be conditional branches or fixed transitions.
+3. [`Edges`](#edges): 현재 `State`를 기반으로 다음에 실행할 `Node`를 결정하는 Python 함수입니다. 이 함수들은 조건부 분기일 수도 있고 고정된 전환일 수도 있습니다.
 
-By composing `Nodes` and `Edges`, you can create complex, looping workflows that evolve the `State` over time. The real power, though, comes from how LangGraph manages that `State`. To emphasize: `Nodes` and `Edges` are nothing more than Python functions - they can contain an LLM or just good ol' Python code.
+`Nodes`와 `Edges`를 조합하여 시간이 지남에 따라 `State`가 발전하는 복잡하고 반복적인 워크플로를 만들 수 있습니다. LangGraph의 진정한 힘은 `State`를 관리하는 방식에서 나옵니다. 강조하자면, `Nodes`와 `Edges`는 Python 함수에 불과합니다 - 여기에는 LLM이 포함될 수도 있고, 일반적인 Python 코드일 수도 있습니다.
 
-In short: _nodes do the work. edges tell what to do next_.
+간단히 말하자면: _노드는 작업을 수행하고, 엣지는 다음에 수행할 작업을 지시합니다_.
 
-LangGraph's underlying graph algorithm uses [message passing](https://en.wikipedia.org/wiki/Message_passing) to define a general program. When a Node completes its operation, it sends messages along one or more edges to other node(s). These recipient nodes then execute their functions, pass the resulting messages to the next set of nodes, and the process continues. Inspired by Google's [Pregel](https://research.google/pubs/pregel-a-system-for-large-scale-graph-processing/) system, the program proceeds in discrete "super-steps."
+LangGraph의 기본 그래프 알고리즘은 [메시지 전달](https://en.wikipedia.org/wiki/Message_passing)을 사용하여 일반적인 프로그램을 정의합니다. 노드가 작업을 완료하면, 하나 이상의 엣지를 따라 다른 노드로 메시지를 보냅니다. 이러한 수신 노드는 기능을 실행하고, 결과 메시지를 다음 노드 집합으로 전달하며, 이 과정은 계속됩니다. Google의 [Pregel](https://research.google/pubs/pregel-a-system-for-large-scale-graph-processing/) 시스템에서 영감을 받아, 프로그램은 개별적인 "슈퍼 스텝"으로 진행됩니다.
 
-A super-step can be considered a single iteration over the graph nodes. Nodes that run in parallel are part of the same super-step, while nodes that run sequentially belong to separate super-steps. At the start of graph execution, all nodes begin in an `inactive` state. A node becomes `active` when it receives a new message (state) on any of its incoming edges (or "channels"). The active node then runs its function and responds with updates. At the end of each super-step, nodes with no incoming messages vote to `halt` by marking themselves as `inactive`. The graph execution terminates when all nodes are `inactive` and no messages are in transit.
+슈퍼 스텝은 그래프 노드를 한 번 반복하는 것으로 간주할 수 있습니다. 병렬로 실행되는 노드는 동일한 슈퍼 스텝의 일부이며, 순차적으로 실행되는 노드는 별도의 슈퍼 스텝에 속합니다. 그래프 실행이 시작되면 모든 노드는 `비활성` 상태로 시작합니다. 노드는 하나 이상의 수신 엣지(또는 "채널")에서 새 메시지(상태)를 수신하면 `활성` 상태가 됩니다. 활성화된 노드는 기능을 실행하고 업데이트로 응답합니다. 각 슈퍼 스텝이 끝나면, 수신 메시지가 없는 노드는 자신을 `비활성`으로 표시하여 `중단`에 투표합니다. 모든 노드가 `비활성` 상태가 되고 메시지가 전송되지 않으면 그래프 실행이 종료됩니다.
 
 ### StateGraph
 
-The `StateGraph` class is the main graph class to uses. This is parameterized by a user defined `State` object.
+`StateGraph` 클래스는 사용하는 주요 그래프 클래스입니다. 이는 사용자 정의 `State` 객체로 매개변수화됩니다.
 
 ### MessageGraph
 
-The `MessageGraph` class is a special type of graph. The `State` of a `MessageGraph` is ONLY a list of messages. This class is rarely used except for chatbots, as most applications require the `State` to be more complex than a list of messages.
+`MessageGraph` 클래스는 특별한 유형의 그래프입니다. `MessageGraph`의 `State`는 단순히 메시지 목록입니다. 이 클래스는 챗봇 외의 대부분의 애플리케이션에서 사용되지 않으며, 대부분의 애플리케이션은 메시지 목록보다 더 복잡한 `State`를 필요로 합니다.
 
-### Compiling your graph
+### 그래프 컴파일
 
-To build your graph, you first define the [state](#state), you then add [nodes](#nodes) and [edges](#edges), and then you compile it. What exactly is compiling your graph and why is it needed?
+그래프를 구축하려면 먼저 [상태](#state)를 정의하고, [노드](#nodes)와 [엣지](#edges)를 추가한 후, 그래프를 컴파일해야 합니다. 그렇다면 그래프를 컴파일하는 것이 정확히 무엇이며, 왜 필요할까요?
 
-Compiling is a pretty simple step. It provides a few basic checks on the structure of your graph (no orphaned nodes, etc). It is also where you can specify runtime args like [checkpointers](#checkpointer) and [breakpoints](#breakpoints). You compile your graph by just calling the `.compile` method:
+컴파일은 비교적 간단한 단계입니다. 이는 그래프의 구조(고아 노드가 없는지 등)에 대한 몇 가지 기본적인 검사를 제공합니다. 또한 런타임 인수(예: [체크포인터](#checkpointer) 및 [중단점](#breakpoints))를 지정할 수 있는 곳이기도 합니다. 그래프를 컴파일하려면 `.compile` 메서드를 호출합니다:
 
 ```python
 graph = graph_builder.compile(...)
 ```
 
-You **MUST** compile your graph before you can use it.
+그래프를 사용하기 전에 **반드시** 컴파일해야 합니다.
 
 ## State
 
-The first thing you do when you define a graph is define the `State` of the graph. The `State` consists of the [schema of the graph](#schema) as well as [`reducer` functions](#reducers) which specify how to apply updates to the state. The schema of the `State` will be the input schema to all `Nodes` and `Edges` in the graph, and can be either a `TypedDict` or a `Pydantic` model. All `Nodes` will emit updates to the `State` which are then applied using the specified `reducer` function.
+그래프를 정의할 때 가장 먼저 해야 할 일은 그래프의 `State`를 정의하는 것입니다. `State`는 [그래프의 스키마](#schema)와 `State`에 대한 업데이트를 적용하는 방법을 지정하는 [`리듀서` 함수](#리듀서)로 구성됩니다. `State`의 스키마는 그래프의 모든 `Nodes` 및 `Edges`의 입력 스키마가 되며, 이는 `TypedDict` 또는 `Pydantic` 모델이 될 수 있습니다. 모든 `Nodes`는 `State`에 업데이트를 출력하며, 이는 지정된 `리듀서` 함수를 사용하여 적용됩니다.
 
-### Schema
+### 스키마
 
-The main documented way to specify the schema of a graph is by using `TypedDict`. However, we also support [using a Pydantic BaseModel](../how-tos/state-model.ipynb) as your graph state to add **default values** and additional data validation.
+그래프의 스키마를 지정하는 주요 문서화된 방법은 `TypedDict`을 사용하는 것입니다. 그러나 **기본값** 및 추가 데이터 유효성 검사를 추가하기 위해 [Pydantic BaseModel을 사용하는 것](../how-tos/state-model.ipynb)도 지원합니다.
 
-By default, the graph will have the same input and output schemas. If you want to change this, you can also specify explicit input and output schemas directly. This is useful when you have a lot of keys, and some are explicitly for input and others for output. See the [notebook here](../how-tos/input_output_schema.ipynb) for how to use.
+### 리듀서
 
-By default, all nodes in the graph will share the same state. This means that they will read and write to the same state channels. It is possible to have nodes write to private state channels inside the graph for internal node communication - see [this notebook](../how-tos/pass_private_state.ipynb) for how to do that.
+리듀서는 노드의 업데이트가 `State`에 어떻게 적용되는지를 이해하는 데 중요합니다. `State`의 각 키에는 고유한 독립적인 리듀서 함수가 있습니다. 리듀서 함수가 명시적으로 지정되지 않은 경우, 해당 키에 대한 모든 업데이트가 이를 덮어쓰도록 간주됩니다. 몇 가지 예제를 살펴보며 이를 더 잘 이해해보겠습니다.
 
-### Reducers
-
-Reducers are key to understanding how updates from nodes are applied to the `State`. Each key in the `State` has its own independent reducer function. If no reducer function is explicitly specified then it is assumed that all updates to that key should override it. There are a few different types of reducers, starting with the default type of reducer:
-
-#### Default Reducer
-
-These two examples show how to use the default reducer:
-
-**Example A:**
+**예제 A:**
 
 ```python
 from typing import TypedDict
@@ -68,9 +60,9 @@ class State(TypedDict):
     bar: list[str]
 ```
 
-In this example, no reducer functions are specified for any key. Let's assume the input to the graph is `{"foo": 1, "bar": ["hi"]}`. Let's then assume the first `Node` returns `{"foo": 2}`. This is treated as an update to the state. Notice that the `Node` does not need to return the whole `State` schema - just an update. After applying this update, the `State` would then be `{"foo": 2, "bar": ["hi"]}`. If the second node returns `{"bar": ["bye"]}` then the `State` would then be `{"foo": 2, "bar": ["bye"]}`
+이 예에서는 어떤 키에 대해서도 리듀서 함수가 지정되지 않았습니다. 그래프의 입력이 `{"foo": 1, "bar": ["hi"]}`라고 가정해 봅시다. 그런 다음 첫 번째 `Node`가 `{"foo": 2}`를 반환한다고 가정합니다. 이는 상태에 대한 업데이트로 처리됩니다. 노드가 전체 `State` 스키마를 반환할 필요는 없으며, 업데이트만 반환하면 됩니다. 이 업데이트를 적용한 후 `State`는 `{"foo": 2, "bar": ["hi"]}`가 됩니다. 두 번째 노드가 `{"bar": ["bye"]}`를 반환하면 `State`는 `{"foo": 2, "bar": ["bye"]}`가 됩니다.
 
-**Example B:**
+**예제 B:**
 
 ```python
 from typing import TypedDict, Annotated
@@ -81,50 +73,24 @@ class State(TypedDict):
     bar: Annotated[list[str], add]
 ```
 
-In this example, we've used the `Annotated` type to specify a reducer function (`operator.add`) for the second key (`bar`). Note that the first key remains unchanged. Let's assume the input to the graph is `{"foo": 1, "bar": ["hi"]}`. Let's then assume the first `Node` returns `{"foo": 2}`. This is treated as an update to the state. Notice that the `Node` does not need to return the whole `State` schema - just an update. After applying this update, the `State` would then be `{"foo": 2, "bar": ["hi"]}`. If the second node returns `{"bar": ["bye"]}` then the `State` would then be `{"foo": 2, "bar": ["hi", "bye"]}`. Notice here that the `bar` key is updated by adding the two lists together.
+이 예제에서는 `Annotated` 타입을 사용하여 두 번째 키(`bar`)에 대한 리듀서 함수(`operator.add`)를 지정했습니다. 첫 번째 키는 변경되지 않습니다. 그래프의 입력이 `{"foo": 1, "bar": ["hi"]}`라고 가정해 봅시다. 그런 다음 첫 번째 `Node`가 `{"foo": 2}`를 반환한다고 가정합니다. 이는 상태에 대한 업데이트로 처리됩니다. 노드가 전체 `State` 스키마를 반환할 필요는 없으며, 업데이트만 반환하면 됩니다. 이 업데이트를 적용한 후 `State`는 `{"foo": 2, "bar": ["hi"]}`가 됩니다. 두 번째 노드가 `{"bar": ["bye"]}`를 반환하면 `State`는 `{"foo": 2, "bar": ["hi", "bye"]}`가 됩니다. 여기서 `bar` 키는 두 리스트를 더하여 업데이트됩니다.
 
-#### Context Reducer
+### 메시지 상태
 
-You can use `Context` channels to define shared resources (such as database connections) that are managed outside of your graph's nodes and excluded from checkpointing. The context manager provided to the Context channel is entered before the first step of the graph execution and exited after the last step, allowing you to set up and clean up resources for the duration of the graph invocation. Read this [how to](https://langchain-ai.github.io/langgraph/how-tos/state-context-key) to see an example of using the `Context` channel in your graph.
-
-### Working with Messages in Graph State
-
-#### Why use messages?
-
-Most modern LLM providers have a chat model interface that accepts a list of messages as input. LangChain's [`ChatModel`](https://python.langchain.com/v0.2/docs/concepts/#chat-models) in particular accepts a list of `Message` objects as inputs. These messages come in a variety of forms such as `HumanMessage` (user input) or `AIMessage` (LLM response). To read more about what message objects are, please refer to [this](https://python.langchain.com/v0.2/docs/concepts/#messages) conceptual guide.
-
-#### Using Messages in your Graph
-
-In many cases, it is helpful to store prior conversation history as a list of messages in your graph state. To do so, we can add a key (channel) to the graph state that stores a list of `Message` objects and annotate it with a reducer function (see `messages` key in the example below). The reducer function is vital to telling the graph how to update the list of `Message` objects in the state with each state update (for example, when a node sends an update). If you don't specify a reducer, every state update will overwrite the list of messages with the most recently provided value. If you wanted to simply append messages to the existing list, you could use `operator.add` as a reducer.
-
-However, you might also want to manually update messages in your graph state (e.g. human-in-the-loop). If you were to use `operator.add`, the manual state updates you send to the graph would be appended to the existing list of messages, instead of updating existing messages. To avoid that, you need a reducer that can keep track of message IDs and overwrite existing messages, if updated. To achieve this, you can use the prebuilt `add_messages` function. For brand new messages, it will simply append to existing list, but it will also handle the updates for existing messages correctly.
-
-#### Serialization
-
-In addition to keeping track of message IDs, the `add_messages` function will also try to deserialize messages into LangChain `Message` objects whenever a state update is received on the `messages` channel. See more information on LangChain serialization/deserialization [here](https://python.langchain.com/v0.2/docs/how_to/serialization/). This allows sending graph inputs / state updates in the following format:
-
-```python
-# this is supported
-{"messages": [HumanMessage(content="message")]}
-
-# and this is also supported
-{"messages": [{"type": "human", "content": "message"}]}
-```
-
-Since the state updates are always deserialized into LangChain `Messages` when using `add_messages`, you should use dot notation to access message attributes, like `state["messages"][-1].content`. Below is an example of a graph that uses `add_messages` as it's reducer function.
+`MessageState`는 LangGraph에서 사용하기 쉽게 설계된 몇 안 되는 구성 요소 중 하나입니다. `MessageState`는 상태에서 메시지 목록을 키로 사용하기 쉽게 만들어진 특별한 상태입니다. 구체적으로, `MessageState`는 다음과 같이 정의됩니다:
 
 ```python
 from langchain_core.messages import AnyMessage
 from langgraph.graph.message import add_messages
 from typing import Annotated, TypedDict
 
-class GraphState(TypedDict):
+class MessagesState(TypedDict):
     messages: Annotated[list[AnyMessage], add_messages]
 ```
 
-#### MessagesState
+이것은 `TypedDict`를 생성하고 단일 키인 `messages`를 포함합니다. 이는 `Message` 객체의 목록이며, `add_messages`를 리듀서로 사용합니다. `add_messages`는 기본적으로 메시지를 기존 목록에 추가합니다(또한 OpenAI 메시지 형식을 표준 LangChain 메시지 형식으로 변환하고, 메시지 ID를 기반으로 업데이트를 처리하는 등의 기능도 수행합니다).
 
-Since having a list of messages in your state is so common, there exists a prebuilt state called `MessagesState` which makes it easy to use messages. `MessagesState` is defined with a single `messages` key which is a list of `AnyMessage` objects and uses the `add_messages` reducer. Typically, there is more state to track than just messages, so we see people subclass this state and add more fields, like:
+우리는 종종 메시지 목록이 상태의 핵심 구성 요소가 되는 것을 보며, 이 사전 구축된 상태는 메시지를 쉽게 사용할 수 있도록 설계되었습니다. 일반적으로 메시지 외에도 추적할 상태가 더 많이 있으므로, 우리는 이 상태를 서브클래싱하고 더 많은 필드를 추가하는 것을 봅니다:
 
 ```python
 from langgraph.graph import MessagesState
@@ -133,11 +99,11 @@ class State(MessagesState):
     documents: list[str]
 ```
 
-## Nodes
+## 노드
 
-In LangGraph, nodes are typically python functions (sync or `async`) where the **first** positional argument is the [state](#state), and (optionally), the **second** positional argument is a "config", containing optional [configurable parameters](#configuration) (such as a `thread_id`).
+LangGraph에서 노드는 일반적으로 Python 함수(동기 또는 `async`)이며, 첫 번째 위치 인수는 [상태](#state)이고, (선택적으로) 두 번째 위치 인수는 `thread_id`와 같은 선택적 [구성 가능한 매개변수](#configuration)를 포함하는 "구성"입니다.
 
-Similar to `NetworkX`, you add these nodes to a graph using the [add_node][langgraph.graph.StateGraph.add_node] method:
+`NetworkX`와 유사하게, [add_node][langgraph.graph.StateGraph.add_node] 메서드를 사용하여 이 노드를 그래프에 추가합니다:
 
 ```python
 from langchain_core.runnables import RunnableConfig
@@ -151,7 +117,7 @@ def my_node(state: dict, config: RunnableConfig):
     return {"results": f"Hello, {state['input']}!"}
 
 
-# The second argument is optional
+# 두 번째 인수는 선택 사항입니다.
 def my_other_node(state: dict):
     return state
 
@@ -161,18 +127,18 @@ builder.add_node("other_node", my_other_node)
 ...
 ```
 
-Behind the scenes, functions are converted to [RunnableLambda's](https://api.python.langchain.com/en/latest/runnables/langchain_core.runnables.base.RunnableLambda.html#langchain_core.runnables.base.RunnableLambda), which add batch and async support to your function, along with native tracing and debugging.
+백그라운드에서 함수는 [RunnableLambda](https://api.python.langchain.com/en/latest/runnables/langchain_core.runnables.base.RunnableLambda.html#langchain_core.runnables.base.RunnableLambda)로 변환되어, 함수에 배치 및 비동기 지원을 추가하며, 기본적인 추적 및 디버깅 기능을 제공합니다.
 
-If you add a node to graph without specifying a name, it will be given a default name equivalent to the function name.
+이름을 지정하지 않고 그래프에 노드를 추가하면, 기본적으로 함수 이름과 동일한 이름이 지정됩니다.
 
 ```python
 builder.add_node(my_node)
-# You can then create edges to/from this node by referencing it as `"my_node"`
+# 그런 다음 이 노드에서 또는 이 노드로의 엣지를 생성하여 참조할 수 있습니다.
 ```
 
-### `START` Node
+### `START` 노드
 
-The `START` Node is a special node that represents the node sends user input to the graph. The main purpose for referencing this node is to determine which nodes should be called first.
+`START` 노드는 사용자 입력을 그래프에 보내는 노드를 나타내는 특별한 노드입니다. 이 노드를 참조하는 주요 목적은 어떤 노드를 먼저 호출할지 결정하는 것입니다.
 
 ```python
 from langgraph.graph import START
@@ -180,56 +146,56 @@ from langgraph.graph import START
 graph.add_edge(START, "node_a")
 ```
 
-### `END` Node
+### `END` 노드
 
-The `END` Node is a special node that represents a terminal node. This node is referenced when you want to denote which edges have no actions after they are done.
+`END` 노드는 종료 노드를 나타내는 특별한 노드입니다. 작업이 완료된 후에 동작이 없는 엣지를 나타내고자 할 때 이 노드를 참조합니다.
 
-```
+```python
 from langgraph.graph import END
 
 graph.add_edge("node_a", END)
 ```
 
-## Edges
+## 엣지
 
-Edges define how the logic is routed and how the graph decides to stop. This is a big part of how your agents work and how different nodes communicate with each other. There are a few key types of edges:
+엣지는 논리를 라우팅하고 그래프가 중단되는 방식을 정의합니다. 이는 에이전트가 작동하는 방식과 서로 다른 노드가 서로 통신하는 방식을 크게 좌우합니다. 몇 가지 주요 엣지 유형이 있습니다:
 
-- Normal Edges: Go directly from one node to the next.
-- Conditional Edges: Call a function to determine which node(s) to go to next.
-- Entry Point: Which node to call first when user input arrives.
-- Conditional Entry Point: Call a function to determine which node(s) to call first when user input arrives.
+- 일반 엣지: 한 노드에서 다른 노드로 직접 이동합니다.
+- 조건부 엣지: 함수를 호출하여 다음에 어떤 노드로 이동할지 결정합니다.
+- 시작 지점: 사용자 입력이 도착할 때 처음 호출할 노드를 결정합니다.
+- 조건부 시작 지점: 사용자 입력이 도착할 때 처음 호출할 노드를 함수로 결정합니다.
 
-A node can have MULTIPLE outgoing edges. If a node has multiple out-going edges, **all** of those destination nodes will be executed in parallel as a part of the next superstep.
+노드에는 여러 개의 출력 엣지가 있을 수 있습니다. 노드에 여러 개의 출력 엣지가 있는 경우, **모든** 대상 노드가 다음 슈퍼스텝의 일부로 병렬로 실행됩니다.
 
-### Normal Edges
+### 일반 엣지
 
-If you **always** want to go from node A to node B, you can use the [add_edge][langgraph.graph.StateGraph.add_edge] method directly.
+항상 노드 A에서 노드 B로 이동하려면 [add_edge][langgraph.graph.StateGraph.add_edge] 메서드를 직접 사용할 수 있습니다.
 
 ```python
 graph.add_edge("node_a", "node_b")
 ```
 
-### Conditional Edges
+### 조건부 엣지
 
-If you want to **optionally** route to 1 or more edges (or optionally terminate), you can use the [add_conditional_edges][langgraph.graph.StateGraph.add_conditional_edges] method. This method accepts the name of a node and a "routing function" to call after that node is executed:
+1개 이상의 엣지로 선택적으로 라우팅(또는 선택적으로 종료)하려면 [add_conditional_edges][langgraph.graph.StateGraph.add_conditional_edges] 메서드를 사용할 수 있습니다. 이 메서드는 노드 이름과 해당 노드가 실행된 후 호출할 "라우팅 함수"를 인수로 받습니다:
 
 ```python
 graph.add_conditional_edges("node_a", routing_function)
 ```
 
-Similar to nodes, the `routing_function` accept the current `state` of the graph and return a value.
+노드와 마찬가지로 `routing_function`은 그래프의 현재 `state`를 받아 값을 반환합니다.
 
-By default, the return value `routing_function` is used as the name of the node (or a list of nodes) to send the state to next. All those nodes will be run in parallel as a part of the next superstep.
+기본적으로, `routing_function`의 반환 값은 상태를 다음에 보낼 노드(또는 노드 목록)의 이름으로 사용됩니다. 이러한 모든 노드는 다음 슈퍼스텝의 일부로 병렬로 실행됩니다.
 
-You can optionally provide a dictionary that maps the `routing_function`'s output to the name of the next node.
+`routing_function`의 출력을 다음 노드의 이름에 매핑하는 사전을 선택적으로 제공할 수 있습니다.
 
 ```python
 graph.add_conditional_edges("node_a", routing_function, {True: "node_b", False: "node_c"})
 ```
 
-### Entry Point
+### 시작 지점
 
-The entry point is the first node(s) that are run when the graph starts. You can use the [`add_edge`][langgraph.graph.StateGraph.add_edge] method from the virtual [`START`][start] node to the first node to execute to specify where to enter the graph.
+시작 지점은 그래프가 시작될 때 실행되는 첫 번째 노드입니다. 가상 [`START`][start] 노드에서 첫 번째로 실행할 노드로 진입점을 지정하기 위해 [`add_edge`][langgraph.graph.StateGraph.add_edge] 메서드를 사용할 수 있습니다.
 
 ```python
 from langgraph.graph import START
@@ -237,9 +203,9 @@ from langgraph.graph import START
 graph.add_edge(START, "node_a")
 ```
 
-### Conditional Entry Point
+### 조건부 시작 지점
 
-A conditional entry point lets you start at different nodes depending on custom logic. You can use [`add_conditional_edges`][langgraph.graph.StateGraph.add_conditional_edges] from the virtual [`START`][start] node to accomplish this.
+조건부 시작 지점은 사용자 정의 로직에 따라 다른 노드에서 시작할 수 있도록 합니다. 가상 [`START`][start] 노드에서 [`add_conditional_edges`][langgraph.graph.StateGraph.add_conditional_edges]를 사용하여 이를 수행할 수 있습니다.
 
 ```python
 from langgraph.graph import START
@@ -247,7 +213,7 @@ from langgraph.graph import START
 graph.add_conditional_edges(START, routing_function)
 ```
 
-You can optionally provide a dictionary that maps the `routing_function`'s output to the name of the next node.
+`routing_function`의 출력을 다음 노드의 이름에 매핑하는 사전을 선택적으로 제공할 수 있습니다.
 
 ```python
 graph.add_conditional_edges(START, routing_function, {True: "node_b", False: "node_c"})
@@ -255,9 +221,9 @@ graph.add_conditional_edges(START, routing_function, {True: "node_b", False: "no
 
 ## `Send`
 
-By default, `Nodes` and `Edges` are defined ahead of time and operate on the same shared state. However, there can be cases where the exact edges are not known ahead of time and/or you may want different versions of `State` to exist at the same time. A common of example of this is with `map-reduce` design patterns. In this design pattern, a first node may generate a list of objects, and you may want to apply some other node to all those objects. The number of objects may be unknown ahead of time (meaning the number of edges may not be known) and the input `State` to the downstream `Node` should be different (one for each generated object).
+기본적으로 `Nodes`와 `Edges`는 사전에 정의되며 동일한 공유 상태에서 작동합니다. 그러나 경우에 따라 정확한 엣지를 미리 알 수 없거나, 동시에 서로 다른 `State` 버전이 존재하기를 원할 수도 있습니다. 일반적인 예는 `맵-리듀스(map-reduce)` 설계 패턴입니다. 이 설계 패턴에서 첫 번째 노드는 객체 목록을 생성할 수 있으며, 이 목록의 모든 객체에 대해 일부 다른 노드를 적용하고자 할 수 있습니다. 객체의 수는 미리 알 수 없으며(즉, 엣지의 수를 미리 알 수 없음), 하위 `Node`에 대한 입력 `State`는 다릅니다(생성된 각 객체에 대해).
 
-To support this design pattern, LangGraph supports returning [`Send`](../reference/graphs.md#send) objects from conditional edges. `Send` takes two arguments: first is the name of the node, and second is the state to pass to that node.
+이 설계 패턴을 지원하기 위해, LangGraph는 조건부 엣지에서 [`Send`](../reference/graphs.md#send) 객체를 반환하는 것을 지원합니다. `Send`는 두 개의 인수를 받습니다: 첫 번째는 노드의 이름이고, 두 번째는 그 노드로 전달할 상태입니다.
 
 ```python
 def continue_to_jokes(state: OverallState):
@@ -266,65 +232,65 @@ def continue_to_jokes(state: OverallState):
 graph.add_conditional_edges("node_a", continue_to_jokes)
 ```
 
-## Checkpointer
+## 체크포인터
 
-LangGraph has a built-in persistence layer, implemented through [checkpointers][basecheckpointsaver]. When you use a checkpointer with a graph, you can interact with the state of that graph. When you use a checkpointer with a graph, you can interact with and manage the graph's state. The checkpointer saves a _checkpoint_ of the graph state at every super-step, enabling several powerful capabilities:
+LangGraph는 [체크포인터][basecheckpointsaver]를 통해 구현된 내장된 영속성 계층을 가지고 있습니다. 그래프에 체크포인터를 사용하는 경우, 그래프의 상태와 상호작용하고 관리할 수 있습니다. 체크포인터는 그래프 상태의 _체크포인트_를 각 슈퍼스텝에서 저장하여 여러 강력한 기능을 제공합니다:
 
-First, checkpointers facilitate [human-in-the-loop workflows](agentic_concepts.md#human-in-the-loop) workflows by allowing humans to inspect, interrupt, and approve steps.Checkpointers are needed for these workflows as the human has to be able to view the state of a graph at any point in time, and the graph has to be to resume execution after the human has made any updates to the state.
+첫째, 체크포인터는 인간이 그래프의 상태를 어느 시점에서든지 확인하고, 중단하고, 단계를 승인할 수 있도록 하여 [사람이 개입하는 워크플로](agentic_concepts.md#human-in-the-loop)를 촉진합니다. 인간이 그래프의 상태를 확인하고, 상태에 대한 업데이트를 수행한 후 그래프 실행을 재개해야 하기 때문에 이러한 워크플로에는 체크포인터가 필요합니다.
 
-Second, it allows for ["memory"](agentic_concepts.md#memory) between interactions. You can use checkpointers to create threads and save the state of a thread after a graph executes. In the case of repeated human interactions (like conversations) any follow up messages can be sent to that checkpoint, which will retain its memory of previous ones.
+둘째, 체크포인터를 사용하여 상호작용 간에 ["메모리"](agentic_concepts.md#memory)를 허용할 수 있습니다. 체크포인터를 사용하여 스레드를 생성하고 그래프 실행 후 스레드의 상태를 저장할 수 있습니다. 반복되는 인간 상호작용(예: 대화)에서는 후속 메시지를 해당 체크포인트로 보낼 수 있으며, 이전 메시지를 기억합니다.
 
-See [this guide](../how-tos/persistence.ipynb) for how to add a checkpointer to your graph.
+그래프에 체크포인터를 추가하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/persistence.ipynb)를 참조하세요.
 
-## Threads
+## 스레드
 
-Threads enable the checkpointing of multiple different runs, making them essential for multi-tenant chat applications and other scenarios where maintaining separate states is necessary. A thread is a unique ID assigned to a series of checkpoints saved by a checkpointer. When using a checkpointer, you must specify a `thread_id` or `thread_ts` when running the graph.
+스레드는 여러 다른 실행의 체크포인트를 가능하게 하여, 다중 테넌트 채팅 애플리케이션 및 별도의 상태 유지를 필요로 하는 다른 시나리오에서 필수적입니다. 스레드는 체크포인터에 의해 저장된 체크포인트 시리즈에 할당된 고유 ID입니다. 체크포인터를 사용할 때, 그래프를 실행할 때 `thread_id` 또는 `thread_ts`를 지정해야 합니다.
 
-`thread_id` is simply the ID of a thread. This is always required
+`thread_id`는 스레드의 ID입니다. 이는 항상 필요합니다.
 
-`thread_ts` can optionally be passed. This identifier refers to a specific checkpoint within a thread. This can be used to kick of a run of a graph from some point halfway through a thread.
+`thread_ts`는 선택적으로 전달할 수 있습니다. 이 식별자는 스레드 내의 특정 체크포인트를 참조합니다. 이를 통해 스레드 중간에서 그래프 실행을 시작할 수 있습니다.
 
-You must pass these when invoking the graph as part of the configurable part of the config.
+이들을 설정하려면 구성 가능한 설정의 일부로 그래프를 호출할 때 전달해야 합니다.
 
 ```python
 config = {"configurable": {"thread_id": "a"}}
 graph.invoke(inputs, config=config)
 ```
 
-See [this guide](../how-tos/persistence.ipynb) for how to use threads.
+스레드를 사용하는 방법에 대한 자세한 내용은 [이 가이드](../how-tos/persistence.ipynb)를 참조하세요.
 
-## Checkpointer state
+## 체크포인터 상태
 
- When interacting with the checkpointer state, you must specify a [thread identifier](#threads).Each checkpoint saved by the checkpointer has two properties:
+체크포인터 상태와 상호작용할 때는 [스레드 식별자](#threads)를 지정해야 합니다. 체크포인터에 의해 저장된 각 체크포인트에는 두 가지 속성이 있습니다:
 
-- **values**: This is the value of the state at this point in time.
-- **next**: This is a tuple of the nodes to execute next in the graph.
+- **values**: 이 값은 이 시점에서의 상태 값입니다.
+- **next**: 그래프에서 다음에 실행할 노드의 튜플입니다.
 
-### Get state
+### 상태 가져오기
 
-You can get the state of a checkpointer by calling `graph.get_state(config)`. The config should contain `thread_id`, and the state will be fetched for that thread.
+`graph.get_state(config)`를 호출하여 체크포인터의 상태를 가져올 수 있습니다. 설정에는 `thread_id`가 포함되어야 하며, 해당 스레드에 대한 상태가 검색됩니다.
 
-### Get state history
+### 상태 기록 가져오기
 
-You can also call `graph.get_state_history(config)` to get a list of the history of the graph. The config should contain `thread_id`, and the state history will be fetched for that thread.
+`graph.get_state_history(config)`를 호출하여 그래프의 기록 목록을 가져올 수도 있습니다. 설정에는 `thread_id`가 포함되어야 하며, 해당 스레드에 대한 상태 기록이 검색됩니다.
 
-### Update state
+### 상태 업데이트
 
-You can also interact with the state directly and update it. This takes three different components:
+상태와 직접 상호작용하고 업데이트할 수도 있습니다. 이는 세 가지 구성 요소로 구성됩니다:
 
-- config
-- values
+- 구성
+- 값
 - `as_node`
 
-**config**
+**구성**
 
-The config should contain `thread_id` specifying which thread to update.
+구성에는 업데이트할 스레드를 지정하는 `thread_id`가 포함되어야 합니다.
 
-**values**
+**값**
 
-These are the values that will be used to update the state. Note that this update is treated exactly as any update from a node is treated. This means that these values will be passed to the [reducer](#reducers) functions that are part of the state. So this does NOT automatically overwrite the state. Let's walk through an example.
+이 값들은 상태를 업데이트하는 데 사용됩니다. 이 업데이트는 노드의 업데이트로 간주됩니다. 이는 이 값들이 상태의 일부인 [리듀서](#reducers) 함수에 전달됨을 의미합니다. 따라서 상태를 자동으로 덮어쓰지 않습니다. 예제를 통해 살펴보겠습니다.
 
-Let's assume you have defined the state of your graph as:
+그래프 상태를 다음과 같이 정의했다고 가정해 보겠습니다:
 
 ```python
 from typing import TypedDict, Annotated
@@ -335,47 +301,37 @@ class State(TypedDict):
     bar: Annotated[list[str], add]
 ```
 
-Let's now assume the current state of the graph is
+그래프의 현재 상태가 다음과 같다고 가정해 보겠습니다:
 
 ```
 {"foo": 1, "bar": ["a"]}
 ```
 
-If you update the state as below:
+아래와 같이 상태를 업데이트하면:
 
 ```
 graph.update_state(config, {"foo": 2, "bar": ["b"]})
 ```
 
-Then the new state of the graph will be:
+그래프의 새로운 상태는 다음과 같습니다:
 
 ```
 {"foo": 2, "bar": ["a", "b"]}
 ```
 
-The `foo` key is completely changed (because there is no reducer specified for that key, so it overwrites it). However, there is a reducer specified for the `bar` key, and so it appends `"b"` to the state of `bar`.
+`foo` 키는 완전히 변경됩니다(해당 키에 리듀서가 지정되지 않았기 때문에 덮어씁니다). 그러나 `bar` 키에는 리듀서가 지정되어 있으므로, `bar` 상태에 `"b"`가 추가됩니다.
 
 **`as_node`**
 
-The final thing you specify when calling `update_state` is `as_node`. This update will be applied as if it came from node `as_node`. If `as_node` is not provided, it will be set to the last node that updated the state, if not ambiguous.
+`update_state`를 호출할 때 마지막으로 지정하는 것은 `as_node`입니다. 이 업데이트는 노드 `as_node`에서 온 것처럼 적용됩니다. `as_node`가 제공되지 않으면, 모호하지 않은 경우 상태를 마지막으로 업데이트한 노드로 설정됩니다.
 
-The reason this matters is that the next steps in the graph to execute depend on the last node to have given an update, so this can be used to control which node executes next.
+이것이 중요한 이유는 그래프에서 다음에 실행할 단계가 마지막으로 업데이트를 제공한 노드에 따라 다르기 때문에, 이를 사용하여 다음에 실행할 노드를 제어할 수 있습니다.
 
-## Graph Migrations
+## 구성
 
-LangGraph can easily handle migrations of graph definitions (nodes, edges, and state) even when using a checkpointer to track state.
+그래프를 만들 때 그래프의 특정 부분이 구성 가능하다는 것을 표시할 수도 있습니다. 이는 모델 또는 시스템 프롬프트 간에 쉽게 전환할 수 있도록 하기 위해 일반적으로 수행됩니다. 이를 통해 단일 "인지 아키텍처"(그래프)를 생성할 수 있지만, 여러 다른 인스턴스를 사용할 수 있습니다.
 
-- For threads at the end of the graph (i.e. not interrupted) you can change the entire topology of the graph (i.e. all nodes and edges, remove, add, rename, etc)
-- For threads currently interrupted, we support all topology changes other than renaming / removing nodes (as that thread could now be about to enter a node that no longer exists) -- if this is a blocker please reach out and we can prioritize a solution.
-- For modifying state, we have full backwards and forwards compatibility for adding and removing keys
-- State keys that are renamed lose their saved state in existing threads
-- State keys whose types change in incompatible ways could currently cause issues in threads with state from before the change -- if this is a blocker please reach out and we can prioritize a solution.
-
-## Configuration
-
-When creating a graph, you can also mark that certain parts of the graph are configurable. This is commonly done to enable easily switching between models or system prompts. This allows you to create a single "cognitive architecture" (the graph) but have multiple different instance of it.
-
-You can optionally specify a `config_schema` when creating a graph.
+그래프를 생성할 때 `config_schema`를 선택적으로 지정할 수 있습니다.
 
 ```python
 class ConfigSchema(TypedDict):
@@ -384,7 +340,7 @@ class ConfigSchema(TypedDict):
 graph = StateGraph(State, config_schema=ConfigSchema)
 ```
 
-You can then pass this configuration into the graph using the `configurable` config field.
+이 구성을 `configurable` 구성 필드를 사용하여 그래프에 전달할 수 있습니다.
 
 ```python
 config = {"configurable": {"llm": "anthropic"}}
@@ -392,7 +348,7 @@ config = {"configurable": {"llm": "anthropic"}}
 graph.invoke(inputs, config=config)
 ```
 
-You can then access and use this configuration inside a node:
+그런 다음 노드 내에서 이 구성을 액세스하고 사용할 수 있습니다:
 
 ```python
 def node_a(state, config):
@@ -401,39 +357,36 @@ def node_a(state, config):
     ...
 ```
 
-See [this guide](../how-tos/configuration.ipynb) for a full breakdown on configuration
+구성에 대한 전체 설명은 [이 가이드](../how-tos/configuration.ipynb)를 참조하세요.
 
-## Breakpoints
+## 중단점
 
-It can often be useful to set breakpoints before or after certain nodes execute. This can be used to wait for human approval before continuing. These can be set when you ["compile" a graph](#compiling-your-graph). You can set breakpoints either _before_ a node executes (using `interrupt_before`) or after a node executes (using `interrupt_after`.)
+일부 노드가 실행되기 전이나 후에 중단점을 설정하는 것이 유용할 수 있습니다. 이는 계속하기 전에 인간의 승인을 기다리는 데 사용될 수 있습니다. 이러한 중단점은 ["그래프 컴파일"](#compiling-your-graph) 시 설정할 수 있습니다. `interrupt_before`를 사용하여 노드가 실행되기 **전** 또는 `interrupt_after`를 사용하여 노드가 실행된 **후**에 중단점을 설정할 수 있습니다.
 
-You **MUST** use a [checkpoiner](#checkpointer) when using breakpoints. This is because your graph needs to be able to resume execution.
+중단점을 사용할 때는 [체크포인터](#checkpointer)를 **반드시** 사용해야 합니다. 이는 그래프가 실행을 재개할 수 있어야 하기 때문입니다.
 
-In order to resume execution, you can just invoke your graph with `None` as the input.
+실행을 재개하려면 입력으로 `None`을 사용하여 그래프를 호출하면 됩니다.
 
 ```python
-# Initial run of graph
+# 그래프의 초기 실행
 graph.invoke(inputs, config=config)
 
-# Let's assume it hit a breakpoint somewhere, you can then resume by passing in None
+# 그래프가 중단점에서 멈췄다면, None을 전달하여 재개할 수 있습니다.
 graph.invoke(None, config=config)
 ```
 
-See [this guide](../how-tos/human_in_the_loop/breakpoints.ipynb) for a full walkthrough of how to add breakpoints.
+중단점을 추가하는 방법에 대한 전체 설명은 [이 가이드](../how-tos/human_in_the_loop/breakpoints.ipynb)를 참조하세요.
 
-## Visualization
+## 시각화
 
-It's often nice to be able to visualize graphs, especially as they get more complex. LangGraph comes with several built-in ways to visualize graphs. See [this how-to guide](../how-tos/visualization.ipynb) for more info.
+그래프가 더 복잡해짐에 따라 시각화하는 것이 유용할 수 있습니다. LangGraph에는 그래프를 시각화하는 여러 가지 내장된 방법이 있습니다. 자세한 내용은 [이 가이드](../how-tos/visualization.ipynb)를 참조하세요.
 
-## Streaming
+## 스트리밍
 
-LangGraph is built with first class support for streaming. There are several different streaming modes that LangGraph supports:
+LangGraph는 스트리밍에 대한 일급 지원을 제공합니다. LangGraph는 여러 가지 스트리밍 모드를 지원합니다:
 
-- [`"values"`](../how-tos/stream-values.ipynb): This streams the full value of the state after each step of the graph.
-- [`"updates`](../how-tos/stream-updates.ipynb): This streams the updates to the state after each step of the graph. If multiple updates are made in the same step (e.g. multiple nodes are run) then those updates are streamed separately.
-- `"debug"`: This streams as much information as possible throughout the execution of the graph.
+- [`"values"`](../how-tos/stream-values.ipynb): 그래프의 각 단계 후 상태의 전체 값을 스트리밍합니다.
+- [`"updates"`](../how-tos/stream-updates.ipynb): 그래프의 각 단계 후 상태 업데이트를 스트리밍합니다. 동일한 단계에서 여러 업데이트가 이루어진 경우(예: 여러 노드가 실행된 경우) 이 업데이트는 별도로 스트리밍됩니다.
+- `"debug"`: 그래프 실행 전체에서 가능한 많은 정보를 스트리밍합니다.
 
-In addition, you can use the [`astream_events`](../how-tos/streaming-events-from-within-tools.ipynb) method to stream back events that happen _inside_ nodes. This is useful for [streaming tokens of LLM calls](../how-tos/streaming-tokens.ipynb).
-
-!!! warning "ASYNC IN PYTHON<=3.10"
-    You may fail to see events being emitted from inside a node when using `.astream_events` in Python <= 3.10. If you're using a Langchain RunnableLambda, a RunnableGenerator, or Tool asynchronously inside your node, you will have to propagate callbacks to these objects manually. This is because LangChain cannot automatically propagate callbacks to child objects in this case. Please see examples [here](../how-tos/streaming-content.ipynb) and [here](../how-tos/streaming-events-from-within-tools.ipynb).
+또한, [`astream_events`](../how-tos/streaming-events-from-within-tools.ipynb) 메서드를 사용하여 노드 내부에서 발생하는 이벤트를 스트리밍할 수 있습니다. 이는 [LLM 호출의 토큰 스트리밍](../how-tos/streaming-tokens.ipynb)에 유용합니다.

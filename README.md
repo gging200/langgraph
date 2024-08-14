@@ -1,41 +1,44 @@
 # 🦜🕸️LangGraph
 
-![Version](https://img.shields.io/pypi/v/langgraph)
-[![Downloads](https://static.pepy.tech/badge/langgraph/month)](https://pepy.tech/project/langgraph)
-[![Open Issues](https://img.shields.io/github/issues-raw/langchain-ai/langgraph)](https://github.com/langchain-ai/langgraph/issues)
-[![Docs](https://img.shields.io/badge/docs-latest-blue)](https://langchain-ai.github.io/langgraph/)
+![버전](https://img.shields.io/pypi/v/langgraph)
+[![다운로드](https://static.pepy.tech/badge/langgraph/month)](https://pepy.tech/project/langgraph)
+[![오픈 이슈](https://img.shields.io/github/issues-raw/langchain-ai/langgraph)](https://github.com/langchain-ai/langgraph/issues)
+[![](https://dcbadge.vercel.app/api/server/6adMQxSpJS?compact=true&style=flat)](https://discord.com/channels/1038097195422978059/1170024642245832774)
+[![문서](https://img.shields.io/badge/docs-latest-blue)](https://langchain-ai.github.io/langgraph/)
 
-⚡ Building language agents as graphs ⚡
+⚡ 언어 에이전트를 그래프로 구축 ⚡
 
 > [!NOTE]
-> Looking for the JS version? Click [here](https://github.com/langchain-ai/langgraphjs) ([JS docs](https://langchain-ai.github.io/langgraphjs/)).
+> JS 버전을 찾고 있나요? [여기를 클릭](https://github.com/langchain-ai/langgraphjs) ([JS 문서](https://langchain-ai.github.io/langgraphjs/))하세요.
 
-## Overview
+> [!TIP]
+> LangGraph 애플리케이션을 배포하려고 하시나요? [대기자 명단에 등록](https://www.langchain.com/langgraph-cloud-beta)하여 [LangGraph Cloud](https://langchain-ai.github.io/langgraph/cloud/)에서 관리되는 서비스를 사용해 보세요.
 
-[LangGraph](https://langchain-ai.github.io/langgraph/) is a library for building stateful, multi-actor applications with LLMs, used to create agent and multi-agent workflows. Compared to other LLM frameworks, it offers these core benefits: cycles, controllability, and persistence. LangGraph allows you to define flows that involve cycles, essential for most agentic architectures, differentiating it from DAG-based solutions. As a very low-level framework, it provides fine-grained control over both the flow and state of your application, crucial for creating reliable agents. Additionally, LangGraph includes built-in persistence, enabling advanced human-in-the-loop and memory features.
+## 개요
 
-LangGraph is inspired by [Pregel](https://research.google/pubs/pub37252/) and [Apache Beam](https://beam.apache.org/). The public interface draws inspiration from [NetworkX](https://networkx.org/documentation/latest/). LangGraph is built by LangChain Inc, the creators of LangChain, but can be used without LangChain.
+[LangGraph](https://langchain-ai.github.io/langgraph/)는 LLM을 사용하여 상태를 유지하고 다중 액터 애플리케이션을 구축하는 라이브러리로, 에이전트 및 다중 에이전트 워크플로우를 만드는 데 사용됩니다. 다른 LLM 프레임워크와 비교할 때, 주기, 제어 가능성 및 지속성을 포함한 주요 이점이 있습니다. LangGraph는 대부분의 에이전트 아키텍처에 필수적인 주기를 포함하는 흐름을 정의할 수 있어 DAG 기반 솔루션과 차별화됩니다. 또한, 애플리케이션의 흐름과 상태를 세밀하게 제어할 수 있는 저수준 프레임워크로서 신뢰할 수 있는 에이전트를 만드는 데 중요합니다. LangGraph에는 지속성이 내장되어 있어 고급 인간 개입 및 메모리 기능을 지원합니다.
 
-### Key Features
+LangGraph는 [Pregel](https://research.google/pubs/pub37252/)과 [Apache Beam](https://beam.apache.org/)에서 영감을 받았으며, 공용 인터페이스는 [NetworkX](https://networkx.org/documentation/latest/)에서 영감을 받았습니다. LangGraph는 LangChain Inc, LangChain의 제작자가 개발했으며, LangChain 없이도 사용할 수 있습니다.
 
-- **Cycles and Branching**: Implement loops and conditionals in your apps.
-- **Persistence**: Automatically save state after each step in the graph. Pause and resume the graph execution at any point to support error recovery, human-in-the-loop workflows, time travel and more.
-- **Human-in-the-Loop**: Interrupt graph execution to approve or edit next action planned by the agent.
-- **Streaming Support**: Stream outputs as they are produced by each node (including token streaming).
-- **Integration with LangChain**: LangGraph integrates seamlessly with [LangChain](https://github.com/langchain-ai/langchain/) and [LangSmith](https://docs.smith.langchain.com/) (but does not require them).
+### 주요 기능
 
+- **주기 및 분기**: 앱에서 반복문과 조건문을 구현할 수 있습니다.
+- **지속성**: 그래프의 각 단계 후 상태를 자동으로 저장합니다. 그래프 실행을 중단하고 다시 시작할 수 있어 오류 복구, 인간 개입 워크플로우, 타임 트래블 등을 지원합니다.
+- **인간 개입**: 그래프 실행을 중단하고 에이전트가 계획한 다음 동작을 승인하거나 편집할 수 있습니다.
+- **스트리밍 지원**: 각 노드에서 생성되는 출력물을 실시간으로 스트리밍할 수 있습니다(토큰 스트리밍 포함).
+- **LangChain과의 통합**: LangGraph는 [LangChain](https://github.com/langchain-ai/langchain/) 및 [LangSmith](https://docs.smith.langchain.com/)와 원활하게 통합되지만, 반드시 필요한 것은 아닙니다.
 
-## Installation
+## 설치
 
 ```shell
 pip install -U langgraph
 ```
 
-## Example
+## 예제
 
-One of the central concepts of LangGraph is state. Each graph execution creates a state that is passed between nodes in the graph as they execute, and each node updates this internal state with its return value after it executes. The way that the graph updates its internal state is defined by either the type of graph chosen or a custom function.
+LangGraph의 중심 개념 중 하나는 상태입니다. 각 그래프 실행은 실행되는 그래프의 노드 간에 전달되는 상태를 생성하며, 각 노드는 실행 후 이 내부 상태를 반환 값으로 업데이트합니다. 그래프가 내부 상태를 업데이트하는 방식은 선택한 그래프 유형 또는 사용자 정의 함수에 의해 정의됩니다.
 
-Let's take a look at a simple example of an agent that can use a search tool.
+다음은 검색 도구를 사용할 수 있는 간단한 에이전트의 예입니다.
 
 ```shell
 pip install langchain-anthropic
@@ -45,7 +48,7 @@ pip install langchain-anthropic
 export ANTHROPIC_API_KEY=sk-...
 ```
 
-Optionally, we can set up [LangSmith](https://docs.smith.langchain.com/) for best-in-class observability.
+선택적으로, [LangSmith](https://docs.smith.langchain.com/)를 설정하여 최고 수준의 가시성을 확보할 수 있습니다.
 
 ```shell
 export LANGSMITH_TRACING=true
@@ -58,19 +61,19 @@ from typing import Annotated, Literal, TypedDict
 from langchain_core.messages import HumanMessage
 from langchain_anthropic import ChatAnthropic
 from langchain_core.tools import tool
-from langgraph.checkpoint.memory import MemorySaver
+from langgraph.checkpoint import MemorySaver
 from langgraph.graph import END, StateGraph, MessagesState
 from langgraph.prebuilt import ToolNode
 
 
-# Define the tools for the agent to use
+# 에이전트가 사용할 도구 정의
 @tool
 def search(query: str):
-    """Call to surf the web."""
-    # This is a placeholder, but don't tell the LLM that...
+    """웹 검색을 실행합니다."""
+    # 이 부분은 플레이스홀더이지만 LLM에게는 비밀로 하세요...
     if "sf" in query.lower() or "san francisco" in query.lower():
-        return "It's 60 degrees and foggy."
-    return "It's 90 degrees and sunny."
+        return ["현재 60도이며 안개가 끼어 있습니다."]
+    return ["현재 90도이며 맑습니다."]
 
 
 tools = [search]
@@ -79,153 +82,151 @@ tool_node = ToolNode(tools)
 
 model = ChatAnthropic(model="claude-3-5-sonnet-20240620", temperature=0).bind_tools(tools)
 
-# Define the function that determines whether to continue or not
+# 계속할지 여부를 결정하는 함수 정의
 def should_continue(state: MessagesState) -> Literal["tools", END]:
     messages = state['messages']
     last_message = messages[-1]
-    # If the LLM makes a tool call, then we route to the "tools" node
+    # LLM이 도구 호출을 실행한 경우 "tools" 노드로 라우팅
     if last_message.tool_calls:
         return "tools"
-    # Otherwise, we stop (reply to the user)
+    # 그렇지 않은 경우 중지(사용자에게 응답)
     return END
 
 
-# Define the function that calls the model
+# 모델 호출 함수 정의
 def call_model(state: MessagesState):
     messages = state['messages']
     response = model.invoke(messages)
-    # We return a list, because this will get added to the existing list
+    # 목록을 반환합니다. 이 목록은 기존 목록에 추가됩니다.
     return {"messages": [response]}
 
 
-# Define a new graph
+# 새로운 그래프 정의
 workflow = StateGraph(MessagesState)
 
-# Define the two nodes we will cycle between
+# 주기적으로 반복할 두 개의 노드 정의
 workflow.add_node("agent", call_model)
 workflow.add_node("tools", tool_node)
 
-# Set the entrypoint as `agent`
-# This means that this node is the first one called
+# 진입점을 `agent`로 설정
+# 이는 이 노드가 첫 번째로 호출된다는 것을 의미합니다.
 workflow.set_entry_point("agent")
 
-# We now add a conditional edge
+# 조건부 엣지 추가
 workflow.add_conditional_edges(
-    # First, we define the start node. We use `agent`.
-    # This means these are the edges taken after the `agent` node is called.
+    # 먼저 시작 노드를 정의합니다. `agent`를 사용합니다.
+    # 이는 `agent` 노드가 호출된 후에 취해지는 엣지임을 의미합니다.
     "agent",
-    # Next, we pass in the function that will determine which node is called next.
+    # 다음으로, 어느 노드가 다음에 호출될지 결정하는 함수를 전달합니다.
     should_continue,
 )
 
-# We now add a normal edge from `tools` to `agent`.
-# This means that after `tools` is called, `agent` node is called next.
+# `tools`에서 `agent`로의 일반적인 엣지 추가
 workflow.add_edge("tools", 'agent')
 
-# Initialize memory to persist state between graph runs
+# 그래프 실행 간 상태를 지속시키기 위한 메모리 초기화
 checkpointer = MemorySaver()
 
-# Finally, we compile it!
-# This compiles it into a LangChain Runnable,
-# meaning you can use it as you would any other runnable.
-# Note that we're (optionally) passing the memory when compiling the graph
+# 마지막으로 컴파일합니다!
+# 이것을 LangChain Runnable로 컴파일합니다.
+# 이는 일반적인 Runnable처럼 사용할 수 있음을 의미합니다.
+# 메모리를 컴파일할 때 메모리를 (선택적으로) 전달한다는 점에 유의하세요.
 app = workflow.compile(checkpointer=checkpointer)
 
-# Use the Runnable
+# Runnable 사용
 final_state = app.invoke(
-    {"messages": [HumanMessage(content="what is the weather in sf")]},
+    {"messages": [HumanMessage(content="sf의 날씨는?")]},
     config={"configurable": {"thread_id": 42}}
 )
 final_state["messages"][-1].content
 ```
 
 ```
-"Based on the search results, I can tell you that the current weather in San Francisco is:\n\nTemperature: 60 degrees Fahrenheit\nConditions: Foggy\n\nSan Francisco is known for its microclimates and frequent fog, especially during the summer months. The temperature of 60°F (about 15.5°C) is quite typical for the city, which tends to have mild temperatures year-round. The fog, often referred to as "Karl the Fog" by locals, is a characteristic feature of San Francisco\'s weather, particularly in the mornings and evenings.\n\nIs there anything else you\'d like to know about the weather in San Francisco or any other location?"
+"검색 결과에 따르면, 현재 샌프란시스코의 날씨는 다음과 같습니다:\n\n온도: 60도 화씨\n조건: 안개\n\n샌프란시스코는 미세한 기후와 특히 여름철 자주 발생하는 안개로 유명합니다. 60°F(약 15.5°C)의 온도는 이 도시에서는 매우 일반적입니다. 안개, 특히 아침과 저녁 시간에 샌프란시스코의 날씨의 특징입니다.\n\n샌프란시스코의 날씨나 다른 장소의 날씨에 대해 더 알고 싶으신가요?"
 ```
 
-Now when we pass the same `"thread_id"`, the conversation context is retained via the saved state (i.e. stored list of messages)
+이제 동일한 `"thread_id"`를 전달하면 대화 컨텍스트가 저장된 상태(저장된 메시지 목록)를 통해 유지됩니다.
 
 ```python
 final_state = app.invoke(
-    {"messages": [HumanMessage(content="what about ny")]},
+    {"messages": [HumanMessage(content="뉴욕의 날씨는?")]},
     config={"configurable": {"thread_id": 42}}
 )
 final_state["messages"][-1].content
 ```
 
 ```
-"Based on the search results, I can tell you that the current weather in New York City is:\n\nTemperature: 90 degrees Fahrenheit (approximately 32.2 degrees Celsius)\nConditions: Sunny\n\nThis weather is quite different from what we just saw in San Francisco. New York is experiencing much warmer temperatures right now. Here are a few points to note:\n\n1. The temperature of 90°F is quite hot, typical of summer weather in New York City.\n2. The sunny conditions suggest clear skies, which is great for outdoor activities but also means it might feel even hotter due to direct sunlight.\n3. This kind of weather in New York often comes with high humidity, which can make it feel even warmer than the actual temperature suggests.\n\nIt's interesting to see the stark contrast between San Francisco's mild, foggy weather and New York's hot, sunny conditions. This difference illustrates how varied weather can be across different parts of the United States, even on the same day.\n\nIs there anything else you'd like to know about the weather in New York or any other location?"
+"검색 결과에 따르면, 현재 뉴욕시의 날씨는 다음과 같습니다:\n\n온도: 90도 화씨 (약 32.2도 섭씨)\n조건: 맑음\n\n이는 샌프란시스코에서 본 것과는 매우 다른 날씨입니다. 현재 뉴욕은 훨씬 더 따뜻한 기온을 경험하고 있습니다. 다음은 주목할 만한 몇 가지 사항입니다:\n\n1. 90°F의 온도는 매우 더운 편으로, 뉴욕시의 여름 날씨에 일반적입니다.\n2. 맑은 날씨는 하늘이 맑다는 것을 의미하며, 야외 활동에 적합하지만 직사광선으로 인해 더 더워질 수 있습니다.\n3. 뉴욕의 이러한 날씨는 종종 높은 습도를 동반하여 실제 온도보다 더 따뜻하게 느껴질 수 있습니다.\n\n샌프란시스코의 온화하고 안개 낀 날씨와 뉴욕의 더운 맑은 날씨의 현저한 차이를 보는 것은 흥미롭습니다. 이는 미국의 다른 지역에서 동일한 날에 날씨가 얼마나 다양할 수 있는지를 보여줍니다.\n\n뉴욕의 날씨나 다른 장소에 대해 더 알고 싶으신가요?"
 ```
 
-### Step-by-step Breakdown
+### 단계별 분석
 
 1. <details>
-    <summary>Initialize the model and tools.</summary>
+    <summary>모델 및 도구 초기화</summary>
 
-    - we use `ChatAnthropic` as our LLM. **NOTE:** we need make sure the model knows that it has these tools available to call. We can do this by converting the LangChain tools into the format for OpenAI tool calling using the `.bind_tools()` method.
-    - we define the tools we want to use - a search tool in our case. It is really easy to create your own tools - see documentation here on how to do that [here](https://python.langchain.com/docs/modules/agents/tools/custom_tools).
+    - `ChatAnthropic`을 LLM으로 사용합니다. **참고:** 모델이 사용할 도구를 알고 있어야 합니다. `.bind_tools()` 메서드를 사용하여 LangChain 도구를 OpenAI 도구 호출 형식으로 변환함으로써 이 작업을 수행할 수 있습니다.
+    - 사용할 도구를 정의합니다. 우리의 경우 검색 도구입니다. 사용자 지정 도구를 만드는 것은 매우 쉽습니다. 자세한 내용은 [여기](https://python.langchain.com/docs/modules/agents/tools/custom_tools)에서 확인하세요.
    </details>
 
 2. <details>
-    <summary>Initialize graph with state.</summary>
+    <summary>상태와 함께 그래프 초기화</summary>
 
-    - we initialize graph (`StateGraph`) by passing state schema (in our case `MessagesState`)
-    - `MessagesState` is a prebuilt state schema that has one attribute -- a list of LangChain `Message` objects, as well as logic for merging the updates from each node into the state
+    - 상태 스키마(`MessagesState`)를 전달하여 그래프(`StateGraph`)를 초기화합니다.
+    - `MessagesState`는 하나의 속성 - LangChain `Message` 객체의 목록과 각 노드에서 상태 업데이트를 병합하는 로직이 있는 사전 빌드된 상태 스키마입니다.
    </details>
 
 3. <details>
-    <summary>Define graph nodes.</summary>
+    <summary>그래프 노드 정의</summary>
 
-    There are two main nodes we need:
+    주요 노드는 다음과 같습니다:
 
-      - The `agent` node: responsible for deciding what (if any) actions to take.
-      - The `tools` node that invokes tools: if the agent decides to take an action, this node will then execute that action.
+      - `agent` 노드: 수행할 동작을 결정하는 역할을 합니다.
+      - `tools` 노드: 에이전트가 동작을 결정한 경우, 해당 동작을 실행합니다.
    </details>
 
 4. <details>
-    <summary>Define entry point and graph edges.</summary>
+    <summary>진입점과 그래프 엣지 정의</summary>
 
-      First, we need to set the entry point for graph execution - `agent` node.
+      먼저, 그래프 실행을 위한 진입점을 설정해야 합니다 - `agent` 노드.
 
-      Then we define one normal and one conditional edge. Conditional edge means that the destination depends on the contents of the graph's state (`MessageState`). In our case, the destination is not known until the agent (LLM) decides.
+      그런 다음 하나의 일반 엣지와 하나의 조건부 엣지를 정의합니다. 조건부 엣지는 그래프 상태(`MessageState`)의 내용에 따라 목적지가 달라진다는 것을 의미합니다. 우리의 경우, 목적지는 에이전트(LLM)가 결정할 때까지 알려지지 않습니다.
 
-      - Conditional edge: after the agent is called, we should either:
-        - a. Run tools if the agent said to take an action, OR
-        - b. Finish (respond to the user) if the agent did not ask to run tools
-      - Normal edge: after the tools are invoked, the graph should always return to the agent to decide what to do next
+      - 조건부 엣지: 에이전트가 호출된 후, 우리는 다음을 실행해야 합니다:
+        - a. 에이전트가 동작을 수행하기로 결정한 경우 도구 실행, 또는
+        - b. 에이전트가 도구 실행을 요청하지 않은 경우 종료(사용자에게 응답)
+      - 일반 엣지: 도구가 호출된 후, 그래프는 항상 다음에 수행할 작업을 결정하기 위해 에이전트로 돌아가야 합니다.
    </details>
 
 5. <details>
-    <summary>Compile the graph.</summary>
+    <summary>그래프 컴파일</summary>
 
-    - When we compile the graph, we turn it into a LangChain [Runnable](https://python.langchain.com/v0.2/docs/concepts/#runnable-interface), which automatically enables calling `.invoke()`, `.stream()` and `.batch()` with your inputs
-    - We can also optionally pass checkpointer object for persisting state between graph runs, and enabling memory, human-in-the-loop workflows, time travel and more. In our case we use `MemorySaver` - a simple in-memory checkpointer
+    - 그래프를 컴파일하면 LangChain [Runnable](https://python.langchain.com/v0.2/docs/concepts/#runnable-interface)로 변환되며, 자동으로 `.invoke()`, `.stream()` 및 `.batch()`를 입력과 함께 호출할 수 있습니다.
+    - 그래프 실행 간 상태를 지속시키기 위해 체크포인터 객체를 선택적으로 전달할 수 있습니다. 우리의 경우 간단한 메모리 체크포인터인 `MemorySaver`를 사용합니다.
     </details>
 
 6. <details>
-   <summary>Execute the graph.</summary>
+   <summary>그래프 실행</summary>
 
-    1. LangGraph adds the input message to the internal state, then passes the state to the entrypoint node, `"agent"`.
-    2. The `"agent"` node executes, invoking the chat model.
-    3. The chat model returns an `AIMessage`. LangGraph adds this to the state.
-    4. Graph cycles the following steps until there are no more `tool_calls` on `AIMessage`:
+    1. LangGraph는 입력 메시지를 내부 상태에 추가한 후, 상태를 진입점 노드인 `"agent"`로 전달합니다.
+    2. `"agent"` 노드가 실행되며, 챗 모델을 호출합니다.
+    3. 챗 모델은 `AIMessage`를 반환합니다. LangGraph는 이를 상태에 추가합니다.
+    4. 그래프는 더 이상 `AIMessage`에 `tool_calls`이 없을 때까지 다음 단계를 반복합니다:
 
-        - If `AIMessage` has `tool_calls`, `"tools"` node executes
-        - The `"agent"` node executes again and returns `AIMessage`
+        - `AIMessage`에 `tool_calls`이 있는 경우 `"tools"` 노드가 실행됩니다.
+        - `"agent"` 노드가 다시 실행되며 `AIMessage`를 반환합니다.
 
-    5. Execution progresses to the special `END` value and outputs the final state.
-    And as a result, we get a list of all our chat messages as output.
+    5. 실행은 특별한 `END` 값으로 진행되며 최종 상태를 출력합니다.
+    결과적으로 우리는 모든 채팅 메시지 목록을 출력물로 받습니다.
    </details>
 
+## 문서
 
-## Documentation
+* [튜토리얼](https://langchain-ai.github.io/langgraph/tutorials/): LangGraph를 사용하여 빌드하는 방법을 안내합니다.
+* [How-to 가이드](https://langchain-ai.github.io/langgraph/how-tos/): 스트리밍부터 메모리 및 지속성 추가, 일반적인 디자인 패턴(분기, 서브그래프 등)까지 LangGraph에서 특정 작업을 수행하는 방법을 설명합니다.
+* [개념 가이드](https://langchain-ai.github.io/langgraph/concepts/): 노드, 엣지, 상태 등 LangGraph의 주요 개념과 원리에 대한 심층적인 설명을 제공합니다.
+* [API 레퍼런스](https://langchain-ai.github.io/langgraph/reference/graphs/): 그래프 및 체크포인팅 API 사용 방법에 대한 간단한 예제, 고수준의 사전 빌드된 구성 요소 등을 검토할 수 있습니다.
+* [클라우드(베타)](https://langchain-ai.github.io/langgraph/cloud/): 클릭 한 번으로 LangGraph 애플리케이션을 LangGraph Cloud에 배포할 수 있습니다.
 
-* [Tutorials](https://langchain-ai.github.io/langgraph/tutorials/): Learn to build with LangGraph through guided examples.
-* [How-to Guides](https://langchain-ai.github.io/langgraph/how-tos/): Accomplish specific things within LangGraph, from streaming, to adding memory & persistence, to common design patterns (branching, subgraphs, etc.), these are the place to go if you want to copy and run a specific code snippet.
-* [Conceptual Guides](https://langchain-ai.github.io/langgraph/concepts/): In-depth explanations of the key concepts and principles behind LangGraph, such as nodes, edges, state and more.
-* [API Reference](https://langchain-ai.github.io/langgraph/reference/graphs/): Review important classes and methods, simple examples of how to use the graph and checkpointing APIs, higher-level prebuilt components and more.
-* [Cloud (beta)](https://langchain-ai.github.io/langgraph/cloud/): With one click, deploy LangGraph applications to LangGraph Cloud.
+## 기여
 
-## Contributing
-
-For more information on how to contribute, see [here](https://github.com/langchain-ai/langgraph/blob/main/CONTRIBUTING.md).
+기여 방법에 대한 자세한 내용은 [여기](https://github.com/langchain-ai/langgraph/blob/main/CONTRIBUTING.md)를 참조하세요.
